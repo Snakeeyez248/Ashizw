@@ -10,13 +10,12 @@
 ### ✨ Features
 - 💓 **Watchdog Service**: Auto-checks Shizuku status every interval (default: 30 min)
 - 🚀 **Auto-Start**: Starts Shizuku after boot with configurable delay (default: 45s)
-- 📱 **Interactive Termux Menu**: Clean numbered menu (arrow-key support if `dialog` installed)
+- 📱 **Interactive Termux Menu**: Clean numbered menu
 - ⚡ **CLI Shortcuts**: 
   - `ashizw start` / `ashizw r` → Start Shizuku
   - `ashizw stop` / `ashizw k` → Stop Shizuku  
   - `ashizw status` / `ashizw s` → Check status
   - `ashizw menu` / `ashizw m` → Open interactive menu
-- 🔔 **Toast Notifications**: Visual feedback on all actions
 - 🧹 **Clean Uninstall**: Removes all configs when module is removed
 - ✅ **KernelSU Dynamic Status**: Live status shown in manager (`💓 Running` / `⚠️ Stopped`)
 - ⚙️ **Configurable Settings**: 
