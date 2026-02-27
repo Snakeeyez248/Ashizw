@@ -5,7 +5,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Android-green)]()
 [![Root](https://img.shields.io/badge/Root-Required-red)]()
 
-**Author:** [Ghulam Qadar](https://github.com/GQ248)
+**Author:** [Ghulam Qadar](https://github.com/Snakeeyez248)
 
 ---
 
@@ -68,7 +68,7 @@ Open Termux and type:
 
 **Made with ❤️ by Ghulam Qadar**
 
-[Report Bugs](https://github.com/GQ248/ashizw/issues)
+[Report Bugs](https://github.com/Snakeeyez248/ashizw/issues)
 
 </div>
 
