@@ -71,3 +71,21 @@ Open Termux and type:
 [Report Bugs](https://github.com/GQ248/ashizw/issues)
 
 </div>
+
+---
+
+👋 **A Personal Note from the Developer**
+
+> Hi! I'm Ghulam Qadar. I want to be honest: **I don't know how to code**. 💙
+> 
+> I just had an idea to keep Shizuku running automatically, and I used **Qwen AI** to help me write the code. Since AI wrote it, **don't expect too much**, but I tested it thoroughly and I'm using it on my own device (Redmi 14C, HyperOS) right now - working perfectly! 🎉
+> 
+> **P.S.** If you're wondering what "Ashizw" means - it's short for **"A Shizuku Watchdog"**! 🔍
+> 
+> This is my first public module, so:
+> - 🙏 If you have any advice, I'd love to hear it!
+> - 🐛 If you find any bugs, please report them!
+> - ✨ If you have feature ideas, let me know!
+> 
+> Every contribution helps me learn and make this project better. Thank you for trying Ashizw! ❤️
+
