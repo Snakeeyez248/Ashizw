@@ -1,2 +1,47 @@
-# Ashizw
-A KernelSu Module to keep shizuku alive 24/7 on rooted devices
+# 🛡️ Ashizw - Shizuku Watchdog & Manager
+**Author:** Ghulam Qadar  
+**Version:** 1.0  
+
+## 📖 Description
+Ashizw is a universal Magisk/KernelSU module that ensures Shizuku stays running. It acts as a watchdog, automatically restarting Shizuku if it crashes, and provides a powerful CLI for management.
+
+## ✨ Features
+- 👍 **Watchdog Service:** Checks Shizuku status every interval (default 30min).
+- 🚀 **Auto-Start:** Starts Shizuku after boot delay (default 45s).
+- 📱 **Interactive CLI:** Menu-driven management in Termux.
+- ⚡ **Shortcuts:** Fast CLI commands (e.g., `ashizw s` for status).
+- 🔔 **Toast Notifications:** Visual feedback on actions.
+- 🧹 **Clean Uninstall:** Removes all configs upon removal.
+
+## 🛠️ Usage (Termux)
+Open Termux and type:
+```bash
+su
+ashizw
+```
+### CLI Commands & Aliases
+| Command | Alias | Description |
+| :--- | :--- | :--- |
+| `ashizw status` | `ashizw s` | Check if Shizuku is running |
+| `ashizw start` | `ashizw r` | Start Shizuku manually |
+| `ashizw stop` | `ashizw k` | Stop Shizuku manually |
+| `ashizw menu` | `ashizw m` | Open Interactive Menu |
+| `ashizw config` | `ashizw c` | Show config path |
+| `ashizw help` | `ashizw h` | Show help message |
+| `ashizw set_delay <s>` | - | Set boot delay (seconds) |
+| `ashizw set_interval <s>` | - | Set check interval (seconds) |
+
+## ⚙️ Configuration
+Config file location: `/data/adb/.config/ashizw/config.json`
+- **Boot Delay:** Time to wait after boot before starting (Default: 45s).
+- **Check Interval:** How often to check heartbeat (Default: 1800s).
+
+## 📝 Logs
+Logs are stored at: `/data/adb/.config/ashizw/ashizw.log`
+
+## ⚠️ Requirements
+- Root Access (Magisk / KernelSU / APatch)
+- Shizuku App installed.
+
+---
+**Made with ❤️ by Ghulam Qadar**
