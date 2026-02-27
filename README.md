@@ -1,6 +1,5 @@
 # 🛡️ Ashizw - Shizuku Watchdog & Manager
 **Author:** Ghulam Qadar  
-**Version:** 1.0  
 
 ## 📖 Description
 Ashizw is a universal Magisk/KernelSU module that ensures Shizuku stays running. It acts as a watchdog, automatically restarting Shizuku if it crashes, and provides a powerful CLI for management.
@@ -19,17 +18,17 @@ Open Termux and type:
 su
 ashizw
 ```
-### CLI Commands & Aliases
-| Command | Alias | Description |
-| :--- | :--- | :--- |
-| `ashizw status` | `ashizw s` | Check if Shizuku is running |
-| `ashizw start` | `ashizw r` | Start Shizuku manually |
-| `ashizw stop` | `ashizw k` | Stop Shizuku manually |
-| `ashizw menu` | `ashizw m` | Open Interactive Menu |
-| `ashizw config` | `ashizw c` | Show config path |
-| `ashizw help` | `ashizw h` | Show help message |
-| `ashizw set_delay <s>` | - | Set boot delay (seconds) |
-| `ashizw set_interval <s>` | - | Set check interval (seconds) |
+==================================
+   ✦ Ashizw Commands ✦
+==================================
+ashizw start            : Start Shizuku
+ashizw stop             : Stop Shizuku  
+ashizw status           : Check Status
+ashizw set_delay <s>    : Set Boot Delay (seconds)
+ashizw set_interval <s> : Set Check Interval (seconds)
+ashizw menu             : Open Interactive Menu
+ashizw help             : Show this help
+==================================
 
 ## ⚙️ Configuration
 Config file location: `/data/adb/.config/ashizw/config.json`
