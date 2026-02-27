@@ -1,0 +1,293 @@
+#!/system/bin/sh
+# Ashizw - Shizuku Manager for KernelSU + Termux
+
+CONFIG_DIR="/data/adb/.config/ashizw"
+CONFIG_FILE="$CONFIG_DIR/config.json"
+LOG_FILE="$CONFIG_DIR/ashizw.log"
+MODULE_ID="ashizw"
+
+# Ensure config directory exists
+mkdir -p "$CONFIG_DIR" 2>/dev/null
+
+# Create default config if missing
+init_config() {
+    if [ ! -f "$CONFIG_FILE" ]; then
+        cat > "$CONFIG_FILE" << 'EOF'
+{
+  "boot_delay": 45,
+  "check_interval": 1800
+}
+EOF
+    fi
+}
+init_config
+
+# Toast Function (Android-specific)
+show_toast() {
+    command -v toast >/dev/null 2>&1 && toast "$1"
+    command -v termux-notification >/dev/null 2>&1 && termux-notification -t "$1"
+}
+
+# Update KernelSU Dynamic Status (NEW - ADDED BACK)
+update_ksu_status() {
+    status_msg="$1"
+    if command -v ksud >/dev/null 2>&1; then
+        ksud module config set override.description "$status_msg" 2>/dev/null
+    fi
+}
+
+log() {
+    echo "[*] $(date '+%Y-%m-%d %H:%M:%S'): [CLI] $1" >> "$LOG_FILE"
+}
+
+# Get Current Config Value - Clean extraction
+get_current_val() {
+    local key="$1"
+    local default="$2"
+    
+    if [ -f "$CONFIG_FILE" ]; then
+        # Use sed -n with 'p' flag: only print if pattern matches
+        # This prevents outputting the entire line when extraction fails
+        local val=$(grep "\"$key\"" "$CONFIG_FILE" 2>/dev/null | \
+                   sed -n "s/.*\"$key\"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p" | \
+                   head -n 1)
+        
+        # Validate: must be non-empty AND a valid number
+        if [ -n "$val" ] && [ "$val" -ge 0 ] 2>/dev/null; then
+            echo "$val"
+        else
+            echo "$default"
+        fi
+    else
+        echo "$default"
+    fi
+}
+# Update Config Value - Safe atomic write
+update_config() {
+    local key="$1"
+    local value="$2"
+    
+    if [ ! -f "$CONFIG_FILE" ]; then
+        echo "⚠ Config file not found!"
+        show_toast "⚠ Ashizw: Config Error"
+        return 1
+    fi
+    
+    # Validate input is numeric
+    if ! echo "$value" | grep -qE '^[0-9]+$'; then
+        echo "✗ Invalid value: $value (must be a number)"
+        return 1
+    fi
+    
+    # Create backup
+    cp "$CONFIG_FILE" "${CONFIG_FILE}.bak" 2>/dev/null
+    
+    # Safe sed replacement with temp file (Android-compatible)
+    if sed -E "s/(\"$key\"[[:space:]]*:[[:space:]]*)[0-9]+/\1${value}/" "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" 2>/dev/null; then
+        mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
+        echo "✓ Updated $key to $value seconds."
+        show_toast "✓ Ashizw: Config Updated"
+        log "Config updated: $key = $value"
+        return 0
+    else
+        # Restore backup on failure
+        [ -f "${CONFIG_FILE}.bak" ] && mv "${CONFIG_FILE}.bak" "$CONFIG_FILE"
+        rm -f "${CONFIG_FILE}.tmp" 2>/dev/null
+        echo "✗ Failed to update config!"
+        show_toast "✗ Ashizw: Update Failed"
+        log "Config update failed for $key"
+        return 1
+    fi
+}
+
+start_shizuku() {
+    if pidof shizuku_server >/dev/null 2>&1; then
+        echo "💓 Shizuku is already running."
+        show_toast "💓 Ashizw: Already Running"        update_ksu_status "💓 Shizuku Running | Watchdog Active ✅"
+        return 0
+    fi
+    
+    echo "🚀 Starting Shizuku..."
+    show_toast "🚀 Ashizw: Starting..."
+    update_ksu_status "🔄 Ashizw: Starting Shizuku..."
+    
+    LIB_PATH=$(find /data/app/ -type f -name "libshizuku.so" 2>/dev/null | head -n 1)
+
+    if [ -z "$LIB_PATH" ]; then
+        echo "❌ ERROR: libshizuku.so not found!"
+        show_toast "❌ Ashizw: .so not found"
+        log "Binary not found"
+        update_ksu_status "❌ Ashizw: libshizuku.so Not Found"
+        return 1
+    else
+        echo "Located: $LIB_PATH"
+        chmod 755 "$LIB_PATH" 2>/dev/null
+        "$LIB_PATH"
+        RET=$?
+        if [ "$RET" -eq 0 ]; then
+            echo "💓 SUCCESS: Shizuku restored by Ashizw."
+            show_toast "💓 Ashizw: Started"
+            log "Started via CLI"
+            update_ksu_status "✅ Ashizw: Shizuku Restored Successfully"
+            sleep 3
+            update_ksu_status "💓 Shizuku Running | Watchdog Active ✅"
+        else
+            echo "❌ FAILED: Exit code $RET"
+            show_toast "❌ Ashizw: Start Failed"
+            log "Failed to start via CLI"
+            update_ksu_status "⚠️ Ashizw: Start Failed (Code: $RET)"
+        fi
+    fi
+}
+
+stop_shizuku() {
+    if ! pidof shizuku_server >/dev/null 2>&1; then
+        echo "⚠️ Shizuku is already stopped."
+        show_toast "⚠️ Ashizw: Already Stopped"
+        update_ksu_status "⚠️ Shizuku Stopped | Tap Action to Start"
+        return 0
+    fi
+    
+    echo "🛑 Stopping Shizuku..."
+    show_toast "🛑 Ashizw: Stopping..."
+    update_ksu_status "🛑 Ashizw: Stopping Shizuku..."
+    
+    pkill -f shizuku_server 2>/dev/null    pkill -f shizuku 2>/dev/null
+    sleep 2
+    
+    if ! pidof shizuku_server >/dev/null 2>&1; then
+        echo "✅ Shizuku Stopped Successfully."
+        show_toast "✅ Ashizw: Stopped"
+        log "Stopped via CLI"
+        update_ksu_status "⚠️ Shizuku Stopped | Tap Action to Start"
+        return 0
+    else
+        echo "❌ Failed to stop Shizuku."
+        show_toast "❌ Ashizw: Stop Failed"
+        log "Failed to stop via CLI"
+        update_ksu_status "⚠️ Ashizw: Stop Failed"
+        return 1
+    fi
+}
+
+print_status() {
+    if pidof shizuku_server >/dev/null 2>&1; then
+        echo "💓 Status: Shizuku is RUNNING"
+    else
+        echo "⚠️  Status: Shizuku is STOPPED"
+    fi
+}
+
+show_help_text() {
+    cat << 'EOF'
+==================================
+   ✦ Ashizw Commands ✦
+==================================
+ashizw start            : Start Shizuku
+ashizw stop             : Stop Shizuku  
+ashizw status           : Check Status
+ashizw set_delay <s>    : Set Boot Delay (seconds)
+ashizw set_interval <s> : Set Check Interval (seconds)
+ashizw menu             : Open Interactive Menu
+ashizw help             : Show this help
+==================================
+EOF
+}
+
+show_menu() {
+    while true; do
+        clear
+        echo "=================================="
+        echo "   ✦ Ashizw Manager ✦"
+        echo "=================================="
+        print_status
+        echo "=================================="        
+        echo "1. Start Shizuku"
+        echo "2. Stop Shizuku"
+        echo "3. Settings (Delay/Interval)"
+        echo "4. Help/Commands"
+        echo "5. Exit"
+        echo "=================================="
+        echo -n "Select an option [1-5]: "
+        read CHOICE
+        
+        case $CHOICE in
+            1) start_shizuku;;
+            2) stop_shizuku;;
+            3) 
+                echo ""
+                echo "1. Set Boot Delay"
+                echo "2. Set Check Interval"
+                echo -n "Select setting [1-2]: "
+                read SUB
+                echo ""
+                if [ "$SUB" = "1" ]; then
+                    CURR=$(get_current_val "boot_delay" "45")
+                    echo -n "Enter Boot Delay (Current: ${CURR}s, Default: 45s): "
+                    read VAL
+                    [ -n "$VAL" ] && update_config "boot_delay" "$VAL"
+                elif [ "$SUB" = "2" ]; then
+                    CURR=$(get_current_val "check_interval" "1800")
+                    echo -n "Enter Check Interval (Current: ${CURR}s, Default: 1800s): "
+                    read VAL
+                    [ -n "$VAL" ] && update_config "check_interval" "$VAL"
+                else
+                    echo "Invalid selection"
+                fi
+                ;;
+            4) show_help_text;;
+            5) echo "✦ Goodbye!"; exit 0;;
+            *) echo "Invalid option";;
+        esac
+        echo ""
+        echo "Press Enter to continue..."
+        read -r
+    done
+}
+
+# ============ MAIN LOGIC ============
+
+if [ -z "$1" ]; then
+    show_menu
+    exit 0
+fi
+case "$1" in
+    s|status)
+        print_status
+        ;;
+    r|start|run)
+        start_shizuku
+        ;;
+    k|stop|kill)
+        stop_shizuku
+        ;;
+    m|menu)
+        show_menu
+        ;;
+    c|config)
+        echo "✦ Config Path: $CONFIG_FILE"
+        [ -f "$CONFIG_FILE" ] && cat "$CONFIG_FILE"
+        ;;
+    set_delay)
+        if [ -n "$2" ] && echo "$2" | grep -qE '^[0-9]+$'; then
+            update_config "boot_delay" "$2"
+        else
+            echo "✗ Usage: ashizw set_delay <seconds>"
+        fi
+        ;;
+    set_interval)
+        if [ -n "$2" ] && echo "$2" | grep -qE '^[0-9]+$'; then
+            update_config "check_interval" "$2"
+        else
+            echo "✗ Usage: ashizw set_interval <seconds>"
+        fi
+        ;;
+    h|help|--help)
+        show_help_text
+        ;;
+    *)
+        echo "✗ Unknown command: $1"
+        show_help_text
+        exit 1
+        ;;
+esac
