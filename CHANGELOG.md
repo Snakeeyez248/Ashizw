@@ -5,18 +5,31 @@
 
 ---
 
-## 🔖 v1.0 - Initial Release *(Current)*
+## 🔖 v1.1 - Action Screen Fixes
+
+### 🐛 Fixed
+- Action button output now visible in KernelSU Manager
+- Messages stay on screen for 3 seconds (readable!)
+- Clear error messages with emojis when start/stop fails
+
+### ✨ Improved
+- Better feedback when `libshizuku.so` is not found
+- Dynamic status updates during action execution
+- Cleaner output formatting in action screen
+
+---
+
+## 🔖 v1.0 - Initial Release
 
 ### ✨ Features
 - 💓 **Watchdog Service**: Auto-checks Shizuku status every interval (default: 30 min)
 - 🚀 **Auto-Start**: Starts Shizuku after boot with configurable delay (default: 45s)
-- 📱 **Interactive Termux Menu**: Clean numbered menu (arrow-key support if `dialog` installed)
+- 📱 **Interactive Termux Menu**: Clean numbered menu
 - ⚡ **CLI Shortcuts**: 
   - `ashizw start` / `ashizw r` → Start Shizuku
   - `ashizw stop` / `ashizw k` → Stop Shizuku  
   - `ashizw status` / `ashizw s` → Check status
   - `ashizw menu` / `ashizw m` → Open interactive menu
-- 🔔 **Toast Notifications**: Visual feedback on all actions
 - 🧹 **Clean Uninstall**: Removes all configs when module is removed
 - ✅ **KernelSU Dynamic Status**: Live status shown in manager (`💓 Running` / `⚠️ Stopped`)
 - ⚙️ **Configurable Settings**: 
