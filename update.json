@@ -1,1 +1,6 @@
-n
+{
+  "version": "1.0",
+  "versionCode": 1,
+  "zipUrl": "https://github.com/Snakeeyez248/Ashizw/releases/download/v1.0/Ashizwv1.0.zip",
+  "changelog": "https://raw.githubusercontent.com/Snakeeyez248/Ashizw/refs/heads/main/CHANGELOG.md"
+}
