@@ -15,7 +15,6 @@ chmod 755 "$MODPATH/service.sh"
 chmod 755 "$MODPATH/post-fs-data.sh"
 chmod 755 "$MODPATH/action.sh"
 chmod 755 "$MODPATH/uninstall.sh"
-chmod 644 "$MODPATH/README.md"
 
 # Create Config Dir Early
 mkdir -p "/data/adb/.config/ashizw"
