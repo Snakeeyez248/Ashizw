@@ -6,10 +6,9 @@ Ashizw is a universal Magisk/KernelSU module that ensures Shizuku stays running.
 
 ## ✨ Features
 - 👍 **Watchdog Service:** Checks Shizuku status every interval (default 30min).
-- 🚀 **Auto-Start:** Starts Shizuku after boot delay (default 45s).
+- 🚀 **Auto-Start:** Starts Shizuku after reboot with a specific boot delay (default 45s).
 - 📱 **Interactive CLI:** Menu-driven management in Termux.
-- ⚡ **Shortcuts:** Fast CLI commands (e.g., `ashizw s` for status).
-- 🔔 **Toast Notifications:** Visual feedback on actions.
+- ⚡ **Shortcuts:** Fast CLI commands (e.g., `ashizw status` for status).
 - 🧹 **Clean Uninstall:** Removes all configs upon removal.
 
 ## 🛠️ Usage (Termux)
