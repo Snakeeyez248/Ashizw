@@ -17,18 +17,22 @@ Open Termux and type:
 su
 ashizw
 ```
-==================================
-   ✦ Ashizw Commands ✦
-==================================
-ashizw start            : Start Shizuku
-ashizw stop             : Stop Shizuku  
-ashizw status           : Check Status
-ashizw set_delay <s>    : Set Boot Delay (seconds)
-ashizw set_interval <s> : Set Check Interval (seconds)
-ashizw menu             : Open Interactive Menu
-ashizw help             : Show this help
-==================================
 
+### Option 2: Markdown Table (Better Mobile Readability)
+This format adjusts better to different screen sizes on GitHub.
+
+```markdown
+### Ashizw Commands
+
+| Command | Description |
+| :--- | :--- |
+| `ashizw start` | Start Shizuku |
+| `ashizw stop` | Stop Shizuku |
+| `ashizw status` | Check Status |
+| `ashizw set_delay <s>` | Set Boot Delay (seconds) |
+| `ashizw set_interval <s>` | Set Check Interval (seconds) |
+| `ashizw menu` | Open Interactive Menu |
+| `ashizw help` | Show this help |
 ## ⚙️ Configuration
 Config file location: `/data/adb/.config/ashizw/config.json`
 - **Boot Delay:** Time to wait after boot before starting (Default: 45s).
