@@ -1,49 +1,73 @@
 # 🛡️ Ashizw - Shizuku Watchdog & Manager
-**Author:** Ghulam Qadar  
+
+> **Keep Shizuku alive, automatically.**
+
+[![Platform](https://img.shields.io/badge/Platform-Android-green)]()
+[![Root](https://img.shields.io/badge/Root-Required-red)]()
+
+**Author:** [Ghulam Qadar](https://github.com/GQ248)
+
+---
 
 ## 📖 Description
-Ashizw is a universal Magisk/KernelSU module that ensures Shizuku stays running. It acts as a watchdog, automatically restarting Shizuku if it crashes, and provides a powerful CLI for management.
+**Ashizw** is a universal Magisk/KernelSU module designed to ensure **Shizuku** stays running permanently. It acts as a background watchdog, automatically restarting Shizuku if it crashes or stops unexpectedly. It also provides a powerful CLI and interactive menu for seamless management via Termux.
 
 ## ✨ Features
-- 👍 **Watchdog Service:** Checks Shizuku status every interval (default 30min).
-- 🚀 **Auto-Start:** Starts Shizuku after reboot with a specific boot delay (default 45s).
-- 📱 **Interactive CLI:** Menu-driven management in Termux.
-- ⚡ **Shortcuts:** Fast CLI commands (e.g., `ashizw status` for status).
-- 🧹 **Clean Uninstall:** Removes all configs upon removal.
+- 👍 **Watchdog Service:** Monitors Shizuku status at configurable intervals (Default: 30min)
+- 🚀 **Auto-Start:** Automatically starts Shizuku after boot with a customizable delay (Default: 45s)
+- 📱 **Interactive CLI:** User-friendly menu-driven management in Termux
+- ⚡ **Quick Commands:** Fast CLI shortcuts for common actions
+- 🧹 **Clean Uninstall:** Completely removes all configurations and logs upon module removal
 
-## 🛠️ Usage (Termux)
+## 📦 Installation
+1. Download the latest `ashizw.zip` module file
+2. Open your root manager (Magisk, KernelSU, or APatch)
+3. Navigate to the **Modules** section
+4. Tap **Install from Storage** and select the zip file
+5. **Reboot** your device
+
+## 🛠️ Usage
+
 Open Termux and type:
-```bash
-su
-ashizw
-```
 
-### Option 2: Markdown Table (Better Mobile Readability)
-This format adjusts better to different screen sizes on GitHub.
+    su
+    ashizw
 
-```markdown
-### Ashizw Commands
+### Direct CLI Commands
 
 | Command | Description |
-| :--- | :--- |
-| `ashizw start` | Start Shizuku |
-| `ashizw stop` | Stop Shizuku |
-| `ashizw status` | Check Status |
+|---------|-------------|
+| `ashizw start` | Start Shizuku manually |
+| `ashizw stop` | Stop Shizuku service |
+| `ashizw status` | Check current status |
 | `ashizw set_delay <s>` | Set Boot Delay (seconds) |
 | `ashizw set_interval <s>` | Set Check Interval (seconds) |
 | `ashizw menu` | Open Interactive Menu |
-| `ashizw help` | Show this help |
-## ⚙️ Configuration
-Config file location: `/data/adb/.config/ashizw/config.json`
-- **Boot Delay:** Time to wait after boot before starting (Default: 45s).
-- **Check Interval:** How often to check heartbeat (Default: 1800s).
+| `ashizw help` | Show help message |
 
-## 📝 Logs
-Logs are stored at: `/data/adb/.config/ashizw/ashizw.log`
+## ⚙️ Configuration
+
+- **Config File:** `/data/adb/.config/ashizw/config.json`
+- **Log File:** `/data/adb/.config/ashizw/ashizw.log`
+- **Default Boot Delay:** 45 seconds
+- **Default Check Interval:** 1800 seconds (30 min)
 
 ## ⚠️ Requirements
-- Root Access (Magisk / KernelSU / APatch)
-- Shizuku App installed.
+- ✅ Root Access (Magisk / KernelSU / APatch)
+- ✅ Shizuku App installed
+- ✅ Termux (for management commands)
+
+## 🐛 Troubleshooting
+- **Shizuku not starting?** Check logs at `/data/adb/.config/ashizw/ashizw.log`
+- **Command not found?** Ensure module is installed and rebooted
+- **Permission denied?** Run commands with `su`
 
 ---
+
+<div align="center">
+
 **Made with ❤️ by Ghulam Qadar**
+
+[Report Bugs](https://github.com/GQ248/ashizw/issues)
+
+</div>
