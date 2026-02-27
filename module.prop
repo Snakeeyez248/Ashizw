@@ -4,3 +4,4 @@ version=1.0
 versionCode=1
 author=Ghulam Qadar
 description=Shizuku Watchdog & Manager with CLI support
+updateJson=https://raw.githubusercontent.com/Snakeeyez248/Ashizw/refs/heads/main/update.json
