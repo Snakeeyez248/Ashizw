@@ -5,6 +5,18 @@
 
 ---
 
+## 🔖 v1.2 - Config Reload Fix
+
+### 🐛 Fixed
+- Config changes now apply without reboot
+- Watchdog service re-reads `check_interval` on every check cycle
+
+### ✨ Improved
+- No need to reboot after changing settings via CLI
+- More responsive to user configuration updates
+
+---
+
 ## 🔖 v1.1 - Action Screen Fixes
 
 ### 🐛 Fixed
