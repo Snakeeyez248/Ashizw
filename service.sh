@@ -89,7 +89,7 @@ update_ksu_status "⏳ Ashizw Starting... (Delay: ${BOOT_DELAY}s)"
             fi
         fi
         
-        # 🔥 CHUNKED SLEEP: Check for reload every 10 seconds
+        # 🔥 CHUNKED SLEEP:  Check for reload every 10 seconds
         REMAINING=$CHECK_INTERVAL
         while [ "$REMAINING" -gt 0 ]; do
             # Check reload flag every 10 seconds

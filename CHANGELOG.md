@@ -5,7 +5,7 @@
 
 ---
 
-## 🔖 v1.3 - Instant Config Reload *(2026-02-27)*
+## 🔖 v1.3 - Instant Config Reload
 
 ### ✨ New Feature
 - Config changes now apply within ~10 seconds (no waiting for next cycle!)
