@@ -42,6 +42,10 @@ update_ksu_status "⏳ Ashizw Starting... (Delay: ${BOOT_DELAY}s)"
     sleep "$BOOT_DELAY"
     
     while true; do
+        # 🔥 FIX: Re-read interval on every loop iteration
+        CHECK_INTERVAL=$(get_config "check_interval")
+        [ -z "$CHECK_INTERVAL" ] && CHECK_INTERVAL=1800
+        
         if pidof shizuku_server >/dev/null 2>&1; then
             log "💓 Heartbeat OK | Shizuku is running smoothly"
             update_ksu_status "💓 Shizuku Running | Watchdog Active ✅"
