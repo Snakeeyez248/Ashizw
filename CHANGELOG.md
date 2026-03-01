@@ -5,6 +5,24 @@
 
 ---
 
+## 🔖 v1.3 - Instant Config Reload *(2026-02-27)*
+
+### ✨ New Feature
+- Config changes now apply within ~10 seconds (no waiting for next cycle!)
+- Service detects config updates via reload flag mechanism
+- Chunked sleep allows responsive config reload without performance impact
+
+### 🔧 Technical
+- Added `/data/adb/.config/ashizw/reload.flag` for service-CLI communication
+- Sleep loop checks for config changes every 10 seconds
+- Config re-read triggered immediately when flag detected
+
+### 🐛 Fixed
+- No more waiting up to 30 minutes for interval changes to take effect
+- More responsive user experience when tweaking settings
+
+---
+
 ## 🔖 v1.2 - Config Reload Fix
 
 ### 🐛 Fixed
