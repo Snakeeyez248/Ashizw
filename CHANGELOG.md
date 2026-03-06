@@ -5,6 +5,56 @@
 
 ---
 
+# Ashizw v1.4 - New WebUI Support
+
+## 🎉 New Features
+
+### ✨ Full WebUI Management Interface
+- Complete dashboard with real-time status monitoring
+- One-tap Start/Stop Shizuku controls with instant visual feedback
+- Configurable boot delay and check interval with live validation
+- Dedicated Logs tab with:
+  - Live auto-refresh
+  - Manual refresh & clear buttons
+  - Color-coded entries (✅ success, ❌ error, ⚠️ warning)
+  - Floating scroll-to-top/bottom buttons
+- Responsive dark theme
+
+
+## 🛠️ Improvements
+
+### WebUI Reliability
+- Smart success detection: recognizes `✅`/`SUCCESS` in output even if exit code is non-zero
+- Buffer-safe log loading: uses `tail -n 300` to stay within KernelSU exec limits
+- HTML escaping: prevents XSS and ensures clean log rendering
+- Graceful API fallback: shows warning if `ksu.exec` is unavailable
+
+### User Experience
+- Instant UI updates: status changes immediately on button press, then verifies with backend
+- Persistent configuration: values load from `config.json` on startup
+- Version display: reads actual version from `module.prop` dynamically
+
+### Code Quality
+- Modular JavaScript: separated concerns (exec, UI, logs, config)
+- Error handling: all async operations wrapped in try/catch with user-friendly toasts
+
+## ⚙️ Technical Notes
+- Banner display depends on manager implementation (KSU Next ✅, others ⚠️)
+- All commands execute via `/data/adb/modules/ashizw/system/bin/ashizw` for path consistency
+- Log file path: `/data/adb/.config/ashizw/ashizw.log`
+
+## 📦 Installation
+1. Flash `ashizw-v1.4.zip` via KernelSU Manager
+2. Grant root permission when prompted
+3. Open Ashizw in manager → WebUI tab to access dashboard
+4. (Optional) Add custom `banner.png` to module root for supported managers
+
+---
+
+> Made with ❤️ by Ghulam Qadar  
+> License: GPL-3.0
+
+
 ## 🔖 v1.3 - Instant Config Reload
 
 ### ✨ New Feature

@@ -1,7 +1,8 @@
 id=ashizw
 name=Ashizw
-version=1.3
-versionCode=4
+version=1.4
+versionCode=5
 author=Ghulam Qadar
 description=Shizuku Watchdog & Manager with CLI support
 updateJson=https://github.com/Snakeeyez248/Ashizw/raw/refs/heads/main/update.json
+banner=https://github.com/Snakeeyez248/Ashizw/raw/refs/heads/main/banner.jpeg

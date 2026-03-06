@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ashizw · Shizuku Watchdog</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🛡️</span>
+                    <div class="logo-text">
+                        <h1>Ashizw</h1>
+                        <p class="subtitle">Shizuku Watchdog & Manager</p>
+                    </div>
+                </div>
+                <div class="status-badge" id="headerStatus">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span class="status-text" id="statusText">Checking...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- API Warning -->
+        <div class="api-warning" id="apiWarning">
+            ⚠️ KernelSU API not available. Some features may not work.
+        </div>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-navigation">
+            <button class="tab-btn active" id="tabDashboardBtn">📊 Dashboard</button>
+            <button class="tab-btn" id="tabLogsBtn">📝 Logs</button>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboardTab" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">⚡</span>
+                    <h2>Quick Actions</h2>
+                </div>
+                <div class="card-body">
+                    <button class="action-btn btn-success" id="startBtn">
+                        <span class="btn-icon">🚀</span> Start Shizuku
+                    </button>
+                    <button class="action-btn btn-danger" id="stopBtn">
+                        <span class="btn-icon">🛑</span> Stop Shizuku
+                    </button>
+                    <button class="action-btn btn-secondary" id="refreshStatusBtn">
+                        <span class="btn-icon">🔄</span> Refresh Status
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">⚙️</span>
+                    <h2>Configuration</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="bootDelay">Boot Delay (seconds)</label>
+                        <input type="number" id="bootDelay" min="1" max="300" value="45">
+                        <small class="form-hint">Time to wait after boot before starting</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="checkInterval">Check Interval (seconds)</label>
+                        <input type="number" id="checkInterval" min="10" max="86400" value="1800">
+                        <small class="form-hint">How often to check Shizuku status</small>
+                    </div>
+                    <button class="btn-primary" id="saveConfigBtn">
+                        <span class="btn-icon">💾</span> Save Settings
+                    </button>
+                </div>
+            </div>
+
+            <footer class="app-footer">
+                <p>Made with ❤️ by Ghulam Qadar</p>
+                <p class="version" id="versionDisplay">Version <span id="versionValue">loading...</span></p>
+            </footer>
+        </div>
+
+        <!-- Logs Tab -->
+        <div id="logsTab" class="tab-content">
+            <div class="logs-container">
+                <div class="logs-header">
+                    <div class="logs-title">
+                        <span class="logs-icon">📝</span>
+                        <h2>System Logs</h2>
+                    </div>
+                    <div class="logs-controls">
+                        <button class="btn-small" id="refreshLogsBtn">
+                            <span>🔄</span> Refresh
+                        </button>
+                        <button class="btn-small" id="clearLogsBtn">
+                            <span>🗑️</span> Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="logs-status">
+                    <div class="logs-status-left">
+                        <span class="live-indicator">🔴 LIVE</span>
+                        <span class="logs-count" id="logsCount">0 entries</span>
+                    </div>
+                </div>
+                <!-- Floating scroll arrows -->
+                <div class="scroll-arrows">
+                    <button id="scrollTopBtn" title="Scroll to top">⬆️</button>
+                    <button id="scrollBottomBtn" title="Scroll to bottom">⬇️</button>
+                </div>
+                <div id="logsContainer" class="logs-content">
+                    <div class="log-entry loading">Loading logs...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -86,7 +86,7 @@ update_config() {
         show_toast "✓ Ashizw: Config Updated"
         log "Config updated: $key = $value"
         
-        # 🔥 CREATE RELOAD FLAG Service will detect this!
+        # 🔥 CREATE RELOAD FLAG - Service will detect this!
         touch "/data/adb/.config/ashizw/reload.flag" 2>/dev/null
         log "🔄 Reload flag created - service will apply changes immediately"
         

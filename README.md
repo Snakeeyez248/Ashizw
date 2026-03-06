@@ -10,21 +10,42 @@
 ---
 
 ## 📖 Description
-**Ashizw** is a universal Magisk/KernelSU module designed to ensure **Shizuku** stays running permanently. It acts as a background watchdog, automatically restarting Shizuku if it crashes or stops unexpectedly. It also provides a powerful CLI and interactive menu for seamless management via Termux.
+**Ashizw** is a universal Magisk/KernelSU module designed to ensure **Shizuku** stays running permanently. It acts as a background watchdog, automatically restarting Shizuku if it crashes or stops unexpectedly. 
+
+Now featuring a **beautiful WebUI dashboard** inside KernelSU Manager for one-tap control, real-time monitoring, and live logs — no Termux required! Plus a powerful CLI and interactive menu for advanced users who prefer terminal management.
 
 ## ✨ Features
 - 👍 **Watchdog Service:** Monitors Shizuku status at configurable intervals (Default: 30min)
 - 🚀 **Auto-Start:** Automatically starts Shizuku after boot with a customizable delay (Default: 45s)
+- 🌐 **WebUI Dashboard** *(v1.4+)*: 
+  - Real-time status badge (🟢 Running / 🔴 Stopped)
+  - One-tap Start/Stop Shizuku with instant feedback
+  - Live log viewer with auto-refresh, color-coded entries, and scroll controls
+  - Configurable boot delay & check interval with live validation
+  - Responsive dark theme optimized
 - 📱 **Interactive CLI:** User-friendly menu-driven management in Termux
-- ⚡ **Quick Commands:** Fast CLI shortcuts for common actions
+- ⚡ **Quick Commands:** Fast CLI shortcuts for common actions (`ashizw start`, `ashizw status`, etc.)
+- 🖼️ **Module Banner Support** *(v1.4+)*: Displays artwork in supported managers (✅ KernelSU Next)
 - 🧹 **Clean Uninstall:** Completely removes all configurations and logs upon module removal
 
 ## 📦 Installation
-1. Download the latest `ashizw.zip` module file
+### Basic Install
+1. Download the latest `ashizw-v1.4.zip` module file
 2. Open your root manager (Magisk, KernelSU, or APatch)
 3. Navigate to the **Modules** section
 4. Tap **Install from Storage** and select the zip file
 5. **Reboot** your device
+
+### Post-Install Setup
+#### 🔹 Using WebUI (KernelSU Manager)
+1. Open **KernelSU Manager** → **Modules** → **Ashizw**
+2. Tap the **WebUI** tab (or globe icon 🌐)
+3. Enjoy the dashboard:
+   - 🟢 Status badge shows Shizuku state instantly
+   - ⚡ Start/Stop buttons with visual feedback
+   - 📝 Logs tab with live auto-refresh
+   - ⚙️ Configure intervals without editing files
+
 
 ## 🛠️ Usage
 
