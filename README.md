@@ -77,7 +77,13 @@ Open Termux and type:
 - ✅ Root Access (Magisk / KernelSU / APatch)
 - ✅ Shizuku App installed
 - ✅ Termux (for management commands)
-
+> **Note:** Complete hiding of OverlayFS signatures requires SuSFS or similar kernel-level modules. Ashizw does not modify mount structures.
+> 
+> *My setup (working without detection issues):*  
+> - Root Manager: SukiSu Ultra v4.1.2  
+> - Mount Mode: Hybrid Mount (magic mount default)  
+> - Hiding Module: SuSFS enabled  
+> - Result: ✅ No OverlayFS warnings in Hunter/Duck Detector
 ## 🐛 Troubleshooting
 - **Shizuku not starting?** Check logs at `/data/adb/.config/ashizw/ashizw.log`
 - **Command not found?** Ensure module is installed and rebooted
