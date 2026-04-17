@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Ashizw - Action Script for KernelSU Button
-# v1.2 - Toasts removed (unreliable outside WebUI context)
+# v1.3 - Volume key confirmation + Shizuku app launcher
 
 CONFIG_DIR="/data/adb/.config/ashizw"
 LOG_FILE="$CONFIG_DIR/ashizw.log"
@@ -59,13 +59,7 @@ start_shizuku() {
     fi
 }
 
-# ============ MAIN ============
-
-echo "=================================="
-echo "   ✦ Ashizw Action ✦"
-echo "=================================="
-
-if pidof shizuku_server >/dev/null 2>&1; then
+stop_shizuku() {
     echo "🛑 Stopping Shizuku..."
     log "🛑 Stopping Shizuku via Action..."
     update_ksu_status "🛑 Ashizw: Stopping Shizuku..."
@@ -81,14 +75,82 @@ if pidof shizuku_server >/dev/null 2>&1; then
         show_message "Failed to stop Shizuku" "⚠️"
         update_ksu_status "⚠️ Ashizw: Stop Failed"
     fi
+}
+
+open_shizuku_app() {
+    echo "📱 Opening Shizuku app..."
+    log "📱 Opening Shizuku app..."
+    am start -c moe.shizuku.privileged.api >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        show_message "Shizuku app opened" "✅"
+    else
+        show_message "Failed to open Shizuku app" "⚠️"
+    fi
+}
+
+# ============ MAIN ============
+
+echo "=================================="
+echo "   ✦ Ashizw Action ✦"
+echo "=================================="
+echo ""
+
+# Determine current state
+if pidof shizuku_server >/dev/null 2>&1; then
+    CURRENT_STATE="running"
+    ACTION_NAME="Stop"
 else
-    echo "⚠️ Shizuku is not running"
-    echo "🔄 Attempting to start..."
-    start_shizuku
+    CURRENT_STATE="stopped"
+    ACTION_NAME="Start"
 fi
 
+echo "┌──────────────────────────────────┐"
+echo "│  Shizuku is currently: $CURRENT_STATE          │"
+echo "│                                  │"
+echo "│  [↑] VOLUME UP   => $ACTION_NAME Shizuku      │"
+echo "│  [↓] VOLUME DOWN => Open Shizuku App  │"
+echo "│  (Wait 10s to exit)              │"
+echo "└──────────────────────────────────┘"
+echo ""
+echo "Waiting for input..."
+log "Action menu displayed. State: $CURRENT_STATE"
+
+# Wait for volume key (max 10 seconds)
+timeout=0
+while [ $timeout -lt 100 ]; do
+    event=$(getevent -qlc 1 2>/dev/null)
+    
+    if echo "$event" | grep -q "KEY_VOLUMEUP"; then
+        echo "→ VOLUME UP: $ACTION_NAME Shizuku"
+        log "Volume Up pressed: $ACTION_NAME action"
+        
+        if [ "$CURRENT_STATE" = "running" ]; then
+            stop_shizuku
+        else
+            start_shizuku
+        fi
+        break
+        
+    elif echo "$event" | grep -q "KEY_VOLUMEDOWN"; then
+        echo "→ VOLUME DOWN: Open Shizuku App"
+        log "Volume Down pressed: Open app"
+        open_shizuku_app
+        break
+    fi
+    
+    timeout=$((timeout + 1))
+    sleep 0.1
+done
+
+if [ $timeout -ge 100 ]; then
+    echo "⚠ Timeout: No input received. Exiting."
+    log "Action timeout: No input received"
+fi
+
+echo ""
+echo "✓ Done. Exiting in 2 seconds..."
+sleep 2
 echo "=================================="
 echo "✅ Action Complete"
 echo "=================================="
-sleep 2
 exit 0
