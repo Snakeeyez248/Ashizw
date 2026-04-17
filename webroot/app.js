@@ -140,14 +140,14 @@ function startShizuku() {
             if (pidResult && pidResult.trim().length > 0) {
                 showToast('💓 Shizuku is already running');
                 checkStatus();
-                return;
+                return Promise.resolve(null); // Return resolved promise to skip further execution
             }
             // Not running, proceed with start
-            showToast('Starting Shizuku...');
+            showToast('🚀 Starting Shizuku...');
             return execCommand('/data/adb/modules/ashizw/system/bin/ashizw start');
         })
         .then(result => {
-            if (!result) return; // Already running case
+            if (result === null) return; // Already running case, skip
             // Extract success message from output
             const output = result.trim();
             // Look for a line containing SUCCESS or ✅
@@ -172,14 +172,14 @@ function stopShizuku() {
             if (!pidResult || pidResult.trim().length === 0) {
                 showToast('⚠️ Shizuku is already stopped');
                 checkStatus();
-                return;
+                return Promise.resolve(null); // Return resolved promise to skip further execution
             }
             // Running, proceed with stop
-            showToast('Stopping Shizuku...');
+            showToast('🛑 Stopping Shizuku...');
             return execCommand('/data/adb/modules/ashizw/system/bin/ashizw stop');
         })
         .then(result => {
-            if (!result) return; // Already stopped case
+            if (result === null) return; // Already stopped case, skip
             showToast('✅ ' + (result || 'Stopped').trim());
             checkStatus();
             loadLogs();
