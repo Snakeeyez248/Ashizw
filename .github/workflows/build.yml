@@ -30,38 +30,11 @@ jobs:
         echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
         echo "Current version: $VERSION (code: $VERSION_CODE)"
         
-    - name: Generate CI build version
-      id: new_version
-      run: |
-        CURRENT_VERSION=$(grep "^version=" module.prop | cut -d'=' -f2)
-        CURRENT_CODE=$(grep "^versionCode=" module.prop | cut -d'=' -f2)
-        
-        # Generate a unique CI build suffix based on run number
-        # Example: 1.4 -> 1.4-CI-15 (CI Build #15)
-        # This format makes it clear it's a test build
-        CI_BUILD_NUM="${{ github.run_number }}"
-        NEW_VERSION="${CURRENT_VERSION}-CI-${CI_BUILD_NUM}"
-        NEW_CODE=$((CURRENT_CODE + CI_BUILD_NUM))
-        
-        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-        echo "new_version_code=$NEW_CODE" >> $GITHUB_OUTPUT
-        echo "CI Build version: $NEW_VERSION (code: $NEW_CODE)"
-        
-    - name: Update module.prop temporarily for this build
-      run: |
-        sed -i "s/^version=.*/version=${{ steps.new_version.outputs.new_version }}/" module.prop
-        sed -i "s/^versionCode=.*/versionCode=${{ steps.new_version.outputs.new_version_code }}/" module.prop
-        echo "⚠️ Temporarily updated module.prop to version ${{ steps.new_version.outputs.new_version }} for this CI artifact"
-        echo "📝 This change ONLY exists in the downloaded ZIP, not in the repository!"
-        echo ""
-        echo "✅ New module.prop content:"
-        cat module.prop
-        
     - name: Commit version update (skip for PRs)
       if: false  # Disabled: Manual version management recommended
       uses: stefanzweifel/git-auto-commit-action@v6
       with:
-        commit_message: "chore: bump version to ${{ steps.new_version.outputs.new_version }} [skip ci]"
+        commit_message: "chore: bump version [skip ci]"
         file_pattern: module.prop
         branch: ${{ github.head_ref || github.ref_name }}
         
@@ -106,7 +79,7 @@ jobs:
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Ashizw-v${{ steps.new_version.outputs.new_version }}
+        name: Ashizw-v${{ github.run_number }}
         path: ashizw_module/
         retention-days: 30
         compression-level: 6
