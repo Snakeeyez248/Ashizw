@@ -1,4 +1,49 @@
-// Ashizw WebUI - Final version with smart success detection
+// Ashizw WebUI - Final version with smart success detection and theme support
+
+// Theme management
+const THEME_STORAGE_KEY = 'ashizw_theme';
+const THEME_ATTR = 'data-theme';
+
+function getSystemTheme() {
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+function applyTheme(theme) {
+    if (theme === 'auto') {
+        const systemTheme = getSystemTheme();
+        document.documentElement.setAttribute(THEME_ATTR, systemTheme);
+    } else {
+        document.documentElement.setAttribute(THEME_ATTR, theme);
+    }
+}
+
+function initTheme() {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'auto';
+    const themeSelect = document.getElementById('themeSelect');
+    if (themeSelect) {
+        themeSelect.value = savedTheme;
+    }
+    applyTheme(savedTheme);
+}
+
+function setupThemeListener() {
+    const themeSelect = document.getElementById('themeSelect');
+    if (!themeSelect) return;
+    
+    themeSelect.addEventListener('change', (e) => {
+        const selectedTheme = e.target.value;
+        localStorage.setItem(THEME_STORAGE_KEY, selectedTheme);
+        applyTheme(selectedTheme);
+    });
+    
+    // Listen for system theme changes when in auto mode
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+        const currentTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'auto';
+        if (currentTheme === 'auto') {
+            applyTheme('auto');
+        }
+    });
+}
 
 document.getElementById('statusText').innerText = 'Initialising...';
 console.log('[Ashizw] Script started');
@@ -235,6 +280,10 @@ function checkApiAvailability() {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[Ashizw] DOM ready');
+    // Initialize theme first
+    initTheme();
+    setupThemeListener();
+    
     checkApiAvailability();
     document.getElementById('tabDashboardBtn').addEventListener('click', () => switchTab('dashboard'));
     document.getElementById('tabLogsBtn').addEventListener('click', () => switchTab('logs'));

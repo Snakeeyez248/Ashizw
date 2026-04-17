@@ -1,5 +1,17 @@
 ```
-# Environment
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+dist/
+build/
+target/
+
+# Dependencies
+node_modules/
+venv/
+.venv/
 .env
 .env.local
 .env.*
@@ -13,39 +25,34 @@
 .vscode/
 .idea/
 
-# Dependencies
-node_modules/
-.venv/
-venv/
-__pycache__/
-.mypy_cache/
-.pytest_cache/
-dist/
-build/
-target/
-.gradle/
-
-# OS generated files
+# OS
 .DS_Store
 Thumbs.db
 
-# Coverage reports
+# Coverage
 coverage/
 htmlcov/
 .coverage
 
-# Compiled files
+# Python specific
 *.pyc
-*.class
-*.o
-*.exe
-*.dll
+__pycache__/
+*.pyo
+*.pyd
+.Python
 *.so
-*.a
-*.obj
-*.out
+*.egg-info/
+.eggs/
 
-# Compressed files
+# Node.js specific
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+node_modules/
+dist/
+build/
+
+# Compression files
 *.zip
 *.gz
 *.tar
