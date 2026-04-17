@@ -30,30 +30,28 @@ jobs:
         echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
         echo "Current version: $VERSION (code: $VERSION_CODE)"
         
-    - name: Auto-increment version for build
+    - name: Generate CI build version
       id: new_version
       run: |
         CURRENT_VERSION=$(grep "^version=" module.prop | cut -d'=' -f2)
         CURRENT_CODE=$(grep "^versionCode=" module.prop | cut -d'=' -f2)
         
-        # Split version into major.minor
-        MAJOR=$(echo $CURRENT_VERSION | cut -d'.' -f1)
-        MINOR=$(echo $CURRENT_VERSION | cut -d'.' -f2)
-        
-        # Increment minor version
-        NEW_MINOR=$((MINOR + 1))
-        NEW_VERSION="${MAJOR}.${NEW_MINOR}"
-        NEW_CODE=$((CURRENT_CODE + 1))
+        # Generate a unique CI build suffix based on run number
+        # Example: 1.4 -> 1.4.15 (CI Build #15)
+        # This does NOT modify the repo's module.prop permanently
+        CI_BUILD_NUM="${{ github.run_number }}"
+        NEW_VERSION="${CURRENT_VERSION}.${CI_BUILD_NUM}"
+        NEW_CODE=$((CURRENT_CODE + CI_BUILD_NUM))
         
         echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
         echo "new_version_code=$NEW_CODE" >> $GITHUB_OUTPUT
-        echo "New build version: $NEW_VERSION (code: $NEW_CODE)"
+        echo "CI Build version: $NEW_VERSION (code: $NEW_CODE)"
         
-    - name: Update module.prop with new version
+    - name: Update module.prop temporarily for this build
       run: |
         sed -i "s/^version=.*/version=${{ steps.new_version.outputs.new_version }}/" module.prop
         sed -i "s/^versionCode=.*/versionCode=${{ steps.new_version.outputs.new_version_code }}/" module.prop
-        echo "Updated module.prop to version ${{ steps.new_version.outputs.new_version }}"
+        echo "Temporarily updated module.prop to version ${{ steps.new_version.outputs.new_version }} for this build artifact"
         cat module.prop
         
     - name: Commit version update (skip for PRs)
