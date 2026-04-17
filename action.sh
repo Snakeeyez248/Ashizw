@@ -1,16 +1,10 @@
 #!/system/bin/sh
 # Ashizw - Action Script for KernelSU Button
-# v1.1 - Fixed: Visible output + readable messages
+# v1.2 - Toasts removed (unreliable outside WebUI context)
 
 CONFIG_DIR="/data/adb/.config/ashizw"
 LOG_FILE="$CONFIG_DIR/ashizw.log"
 MODULE_ID="ashizw"
-
-# Toast Function
-show_toast() {
-    command -v toast >/dev/null 2>&1 && toast "$1"
-    command -v termux-notification >/dev/null 2>&1 && termux-notification -t "$1"
-}
 
 # Update KernelSU Dynamic Status
 update_ksu_status() {
@@ -24,7 +18,7 @@ log() {
     echo "[*] $(date '+%Y-%m-%d %H:%M:%S'): [ACTION] $1" >> "$LOG_FILE"
 }
 
-# Print message to stdout (for KSU action screen) + log + toast
+# Print message to stdout (for KSU action screen) + log
 show_message() {
     msg="$1"
     emoji="$2"
@@ -32,8 +26,6 @@ show_message() {
     echo "$emoji $msg"
     # Log to file
     log "$msg"
-    # Show toast
-    show_toast "$emoji Ashizw: $msg"
     # Keep on screen for 3 seconds so user can read
     sleep 3
 }
