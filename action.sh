@@ -81,29 +81,16 @@ open_shizuku_app() {
     echo "📱 Opening Shizuku app..."
     log "📱 Opening Shizuku app..."
     
-    # Try multiple methods to open Shizuku app
-    am start -n moe.shizuku.privileged.api/moe.shizuku.main.ui.MainActivity >/dev/null 2>&1
+    # Direct command that works without 'Open with' menu
+    su -c "am start -n moe.shizuku.privileged.api/moe.shizuku.manager.MainActivity" >/dev/null 2>&1
+    
     if [ $? -eq 0 ]; then
         show_message "Shizuku app opened" "✅"
         return 0
+    else
+        show_message "Failed to open Shizuku app" "⚠️"
+        return 1
     fi
-    
-    # Fallback: try using package name only
-    am start -p moe.shizuku.privileged.api >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        show_message "Shizuku app opened" "✅"
-        return 0
-    fi
-    
-    # Last resort: try monkey command
-    monkey -p moe.shizuku.privileged.api -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        show_message "Shizuku app opened" "✅"
-        return 0
-    fi
-    
-    show_message "Failed to open Shizuku app" "⚠️"
-    return 1
 }
 
 # ============ MAIN ============
@@ -176,13 +163,4 @@ if [ $timeout -ge 100 ]; then
     log "Action timeout: No input received"
 fi
 
-echo ""
-echo "╔═══════════════════════════════════╗"
-echo "║          ✓ Done                  ║"
-echo "║     Exiting in 2 seconds...       ║"
-echo "╚═══════════════════════════════════╝"
-sleep 2
-echo ""
-echo "✅ Action Complete"
-echo "=================================="
 exit 0
