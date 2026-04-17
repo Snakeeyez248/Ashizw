@@ -40,9 +40,10 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         ref: ${{ github.event.inputs.commit_sha != '' && github.event.inputs.commit_sha || 'main' }}
+        persist-credentials: false
         
     - name: Get version info from module.prop
       id: version
