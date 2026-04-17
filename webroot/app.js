@@ -133,9 +133,21 @@ function checkStatus() {
 }
 
 function startShizuku() {
-    showToast('Starting Shizuku...');
-    execCommand('/data/adb/modules/ashizw/system/bin/ashizw start')
+    // First check if Shizuku is already running
+    execCommand('pidof shizuku_server')
+        .then(pidResult => {
+            // If pidof returns output, Shizuku is running
+            if (pidResult && pidResult.trim().length > 0) {
+                showToast('💓 Shizuku is already running');
+                checkStatus();
+                return;
+            }
+            // Not running, proceed with start
+            showToast('Starting Shizuku...');
+            return execCommand('/data/adb/modules/ashizw/system/bin/ashizw start');
+        })
         .then(result => {
+            if (!result) return; // Already running case
             // Extract success message from output
             const output = result.trim();
             // Look for a line containing SUCCESS or ✅
@@ -153,9 +165,21 @@ function startShizuku() {
 }
 
 function stopShizuku() {
-    showToast('Stopping Shizuku...');
-    execCommand('/data/adb/modules/ashizw/system/bin/ashizw stop')
+    // First check if Shizuku is already stopped
+    execCommand('pidof shizuku_server')
+        .then(pidResult => {
+            // If pidof returns no output, Shizuku is already stopped
+            if (!pidResult || pidResult.trim().length === 0) {
+                showToast('⚠️ Shizuku is already stopped');
+                checkStatus();
+                return;
+            }
+            // Running, proceed with stop
+            showToast('Stopping Shizuku...');
+            return execCommand('/data/adb/modules/ashizw/system/bin/ashizw stop');
+        })
         .then(result => {
+            if (!result) return; // Already stopped case
             showToast('✅ ' + (result || 'Stopped').trim());
             checkStatus();
             loadLogs();
