@@ -1,0 +1,96 @@
+name: Build Ashizw Module
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Get version info
+      id: version
+      run: |
+        VERSION=$(grep "^version=" module.prop | cut -d'=' -f2)
+        VERSION_CODE=$(grep "^versionCode=" module.prop | cut -d'=' -f2)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+        echo "Generated version: $VERSION (code: $VERSION_CODE)"
+        
+    - name: Create module directory
+      run: |
+        mkdir -p ashizw_module
+        
+    - name: Copy module files
+      run: |
+        cp -r action.sh \
+            customize.sh \
+            post-fs-data.sh \
+            service.sh \
+            uninstall.sh \
+            module.prop \
+            update.json \
+            banner.jpeg \
+            system \
+            webroot \
+            ashizw_module/
+            
+    - name: Add update-binary (stub for Magisk)
+      run: |
+        mkdir -p ashizw_module/META-INF/com/google/android
+        cat > ashizw_module/META-INF/com/google/android/update-binary << 'EOF'
+        #!/system/bin/sh
+        # Stub update-binary for Magisk compatibility
+        exit 0
+        EOF
+        chmod 755 ashizw_module/META-INF/com/google/android/update-binary
+        
+        cat > ashizw_module/META-INF/com/google/android/updater-script << 'EOF'
+        #MAGISK
+        EOF
+        
+    - name: Create ZIP package
+      run: |
+        cd ashizw_module
+        zip -r ../Ashizw-${{ steps.version.outputs.version }}.zip .
+        cd ..
+        echo "Created Ashizw-${{ steps.version.outputs.version }}.zip"
+        
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Ashizw-${{ steps.version.outputs.version }}
+        path: Ashizw-${{ steps.version.outputs.version }}.zip
+        retention-days: 30
+        
+    - name: Create Release (on main branch only)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.version.outputs.version }}
+        name: Ashizw v${{ steps.version.outputs.version }}
+        body: |
+          ## Ashizw v${{ steps.version.outputs.version }}
+          
+          Automated build from commit: ${{ github.sha }}
+          
+          ### Changes
+          See the commit history for latest changes.
+          
+          ### Installation
+          1. Download the ZIP file
+          2. Flash via Magisk/KernelSU
+          3. Reboot and enjoy!
+        files: Ashizw-${{ steps.version.outputs.version }}.zip
+        draft: false
+        prerelease: true
+        generate_release_notes: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
