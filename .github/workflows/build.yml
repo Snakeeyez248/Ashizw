@@ -57,7 +57,7 @@ jobs:
         cat module.prop
         
     - name: Commit version update (skip for PRs)
-      if: github.event_name != 'pull_request'
+      if: false  # Disabled: Manual version management recommended
       uses: stefanzweifel/git-auto-commit-action@v6
       with:
         commit_message: "chore: bump version to ${{ steps.new_version.outputs.new_version }} [skip ci]"
