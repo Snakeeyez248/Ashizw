@@ -9,7 +9,6 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
   build:
@@ -77,7 +76,7 @@ jobs:
         echo "description=Ashizw v${VERSION} - Now With WebUI Support" >> $GITHUB_OUTPUT
         
     - name: Upload build artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: Ashizw-v${{ github.run_number }}
         path: ashizw_module/
