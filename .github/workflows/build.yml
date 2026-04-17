@@ -96,16 +96,22 @@ jobs:
         #MAGISK
         EOF
         
+    - name: Get version description
+      id: version_desc
+      run: |
+        VERSION=$(grep "^version=" module.prop | cut -d'=' -f2)
+        echo "description=Ashizw v${VERSION} - Now With WebUI Support" >> $GITHUB_OUTPUT
+        
     - name: Create ZIP package
       run: |
         cd ashizw_module
-        zip -r ../Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha }}.zip .
+        zip -r ../Ashizw-v${{ steps.new_version.outputs.new_version }}.zip .
         cd ..
-        echo "Created Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha }}.zip"
+        echo "Created Ashizw-v${{ steps.new_version.outputs.new_version }}.zip"
         
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha }}
-        path: Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha }}.zip
+        name: Ashizw-v${{ steps.new_version.outputs.new_version }}
+        path: Ashizw-v${{ steps.new_version.outputs.new_version }}.zip
         retention-days: 30
