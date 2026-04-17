@@ -102,16 +102,10 @@ jobs:
         VERSION=$(grep "^version=" module.prop | cut -d'=' -f2)
         echo "description=Ashizw v${VERSION} - Now With WebUI Support" >> $GITHUB_OUTPUT
         
-    - name: Create ZIP package
-      run: |
-        cd ashizw_module
-        zip -r ../Ashizw-v${{ steps.new_version.outputs.new_version }}.zip .
-        cd ..
-        echo "Created Ashizw-v${{ steps.new_version.outputs.new_version }}.zip"
-        
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
         name: Ashizw-v${{ steps.new_version.outputs.new_version }}
-        path: Ashizw-v${{ steps.new_version.outputs.new_version }}.zip
+        path: ashizw_module/
         retention-days: 30
+        compression-level: 6
