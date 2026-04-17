@@ -5,6 +5,32 @@
 
 ---
 
+## 🔖 v1.5 - Clean UI & Fixed Logic
+
+### 🎉 New Features
+- ✨ **Clean Action Screen**: Simplified KernelSU action button interface with minimal design
+- 🔘 **Volume Key Controls**: 
+  - Volume Up: Start/Stop Shizuku with confirmation
+  - Volume Down: Directly open Shizuku app (no picker menu)
+- 🌐 **Theme Switcher**: WebUI now supports Dark, Light, and Auto (System) themes
+- 💾 **Theme Persistence**: User's theme choice saved in localStorage
+
+### 🐛 Fixed
+- ✅ **WebUI Start/Stop Logic**: Now matches CLI behavior exactly
+  - Shows "already running" when trying to start while running
+  - Shows "already stopped" when trying to stop while stopped
+  - No more "command failed (1)" errors
+- ✅ **Action.sh Toast Removal**: Removed unreliable toast popups, kept logging
+- ✅ **Shizuku App Launch**: Volume down now opens app directly without "Open with" menu
+- ✅ **GitHub Actions**: Fixed Node.js 20 deprecation warnings, clean artifact names
+
+### 🛠️ Improvements
+- 🎨 **Beautiful Action UI**: Clean box-drawing decorations, instant exit after action
+- ⚡ **Faster Response**: No delays or unnecessary messages in action script
+- 🔒 **Secure Execution**: Proper state checking before executing commands
+
+---
+
 # Ashizw v1.4 - New WebUI Support
 
 ## 🎉 New Features
