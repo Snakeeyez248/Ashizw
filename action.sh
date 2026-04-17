@@ -80,39 +80,67 @@ stop_shizuku() {
 open_shizuku_app() {
     echo "📱 Opening Shizuku app..."
     log "📱 Opening Shizuku app..."
-    am start -c moe.shizuku.privileged.api >/dev/null 2>&1
+    
+    # Try multiple methods to open Shizuku app
+    am start -n moe.shizuku.privileged.api/moe.shizuku.main.ui.MainActivity >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         show_message "Shizuku app opened" "✅"
-    else
-        show_message "Failed to open Shizuku app" "⚠️"
+        return 0
     fi
+    
+    # Fallback: try using package name only
+    am start -p moe.shizuku.privileged.api >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        show_message "Shizuku app opened" "✅"
+        return 0
+    fi
+    
+    # Last resort: try monkey command
+    monkey -p moe.shizuku.privileged.api -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        show_message "Shizuku app opened" "✅"
+        return 0
+    fi
+    
+    show_message "Failed to open Shizuku app" "⚠️"
+    return 1
 }
 
 # ============ MAIN ============
 
-echo "=================================="
-echo "   ✦ Ashizw Action ✦"
-echo "=================================="
+echo ""
+echo "╔═══════════════════════════════════╗"
+echo "║     ✦ Ashizw Action Panel ✦       ║"
+echo "╚═══════════════════════════════════╝"
 echo ""
 
 # Determine current state
 if pidof shizuku_server >/dev/null 2>&1; then
     CURRENT_STATE="running"
     ACTION_NAME="Stop"
+    STATE_ICON="💓"
 else
     CURRENT_STATE="stopped"
     ACTION_NAME="Start"
+    STATE_ICON="⚠️"
 fi
 
-echo "┌──────────────────────────────────┐"
-echo "│  Shizuku is currently: $CURRENT_STATE          │"
-echo "│                                  │"
-echo "│  [↑] VOLUME UP   => $ACTION_NAME Shizuku      │"
-echo "│  [↓] VOLUME DOWN => Open Shizuku App  │"
-echo "│  (Wait 10s to exit)              │"
-echo "└──────────────────────────────────┘"
+echo "┌───────────────────────────────────────┐"
+echo "│                                       │"
+echo "│   Shizuku Status: $STATE_ICON $CURRENT_STATE                  │"
+echo "│                                       │"
+echo "│   ┌─────────────────────────────────┐ │"
+echo "│   │  [↑] VOLUME UP                  │ │"
+echo "│   │      → $ACTION_NAME Shizuku                │ │"
+echo "│   │                                 │ │"
+echo "│   │  [↓] VOLUME DOWN                │ │"
+echo "│   │      → Open Shizuku App         │ │"
+echo "│   └─────────────────────────────────┘ │"
+echo "│                                       │"
+echo "│   ⏱ Waiting for input (10s timeout)  │"
+echo "└───────────────────────────────────────┘"
 echo ""
-echo "Waiting for input..."
+echo "📍 Log: $LOG_FILE"
 log "Action menu displayed. State: $CURRENT_STATE"
 
 # Wait for volume key (max 10 seconds)
@@ -143,14 +171,18 @@ while [ $timeout -lt 100 ]; do
 done
 
 if [ $timeout -ge 100 ]; then
-    echo "⚠ Timeout: No input received. Exiting."
+    echo ""
+    echo "⚠️  Timeout: No input received. Exiting."
     log "Action timeout: No input received"
 fi
 
 echo ""
-echo "✓ Done. Exiting in 2 seconds..."
+echo "╔═══════════════════════════════════╗"
+echo "║          ✓ Done                  ║"
+echo "║     Exiting in 2 seconds...       ║"
+echo "╚═══════════════════════════════════╝"
 sleep 2
-echo "=================================="
+echo ""
 echo "✅ Action Complete"
 echo "=================================="
 exit 0

@@ -133,59 +133,108 @@ function checkStatus() {
 }
 
 function startShizuku() {
-    // First check if Shizuku is already running
-    execCommand('pidof shizuku_server')
-        .then(pidResult => {
-            // If pidof returns output, Shizuku is running
-            if (pidResult && pidResult.trim().length > 0) {
+    // First check if Shizuku is already running using pidof
+    execCommand('pidof shizuku_server >/dev/null 2>&1 && echo "running" || echo "stopped"')
+        .then(stateResult => {
+            const state = (stateResult || '').trim();
+            
+            // If already running, show message and skip
+            if (state === 'running') {
                 showToast('💓 Shizuku is already running');
                 checkStatus();
-                return Promise.resolve(null); // Return resolved promise to skip further execution
+                return Promise.resolve(null);
             }
+            
             // Not running, proceed with start
             showToast('🚀 Starting Shizuku...');
             return execCommand('/data/adb/modules/ashizw/system/bin/ashizw start');
         })
         .then(result => {
             if (result === null) return; // Already running case, skip
+            
             // Extract success message from output
-            const output = result.trim();
-            // Look for a line containing SUCCESS or ✅
-            const successMatch = output.match(/(✅|SUCCESS).*/);
-            const msg = successMatch ? successMatch[0] : 'Shizuku started';
-            showToast('✅ ' + msg);
+            const output = (result || '').trim();
+            
+            // Look for success indicators
+            if (output.includes('SUCCESS') || output.includes('✅') || output.includes('already running')) {
+                const successMatch = output.match(/(✅|SUCCESS|💓).*/);
+                const msg = successMatch ? successMatch[0] : 'Shizuku started';
+                showToast('✅ ' + msg);
+            } else if (output.includes('FAILED') || output.includes('❌') || output.includes('ERROR')) {
+                const errorMatch = output.match(/(❌|FAILED|ERROR).*/);
+                const errMsg = errorMatch ? errorMatch[0] : 'Start failed';
+                showToast('❌ ' + errMsg);
+            } else {
+                // Default success if no error indicators
+                showToast('✅ Shizuku started');
+            }
+            
             checkStatus();
             loadLogs();
         })
         .catch(err => {
-            showToast('❌ Error: ' + err.message);
+            const errMsg = err.message || 'Unknown error';
+            // Check if error message contains success indicators (fallback)
+            if (errMsg.includes('SUCCESS') || errMsg.includes('✅')) {
+                showToast('✅ Command succeeded');
+            } else {
+                showToast('❌ Error: ' + errMsg);
+            }
             checkStatus();
             loadLogs();
         });
 }
 
 function stopShizuku() {
-    // First check if Shizuku is already stopped
-    execCommand('pidof shizuku_server')
-        .then(pidResult => {
-            // If pidof returns no output, Shizuku is already stopped
-            if (!pidResult || pidResult.trim().length === 0) {
+    // First check if Shizuku is already stopped using pidof
+    execCommand('pidof shizuku_server >/dev/null 2>&1 && echo "running" || echo "stopped"')
+        .then(stateResult => {
+            const state = (stateResult || '').trim();
+            
+            // If already stopped, show message and skip
+            if (state === 'stopped') {
                 showToast('⚠️ Shizuku is already stopped');
                 checkStatus();
-                return Promise.resolve(null); // Return resolved promise to skip further execution
+                return Promise.resolve(null);
             }
+            
             // Running, proceed with stop
             showToast('🛑 Stopping Shizuku...');
             return execCommand('/data/adb/modules/ashizw/system/bin/ashizw stop');
         })
         .then(result => {
             if (result === null) return; // Already stopped case, skip
-            showToast('✅ ' + (result || 'Stopped').trim());
+            
+            // Extract result message from output
+            const output = (result || '').trim();
+            
+            // Look for success/failure indicators
+            if (output.includes('SUCCESS') || output.includes('✅') || output.includes('Stopped Successfully')) {
+                const successMatch = output.match(/(✅|SUCCESS).*/);
+                const msg = successMatch ? successMatch[0] : 'Shizuku stopped';
+                showToast('✅ ' + msg);
+            } else if (output.includes('FAILED') || output.includes('❌') || output.includes('ERROR')) {
+                const errorMatch = output.match(/(❌|FAILED|ERROR).*/);
+                const errMsg = errorMatch ? errorMatch[0] : 'Stop failed';
+                showToast('❌ ' + errMsg);
+            } else if (output.includes('already stopped')) {
+                showToast('⚠️ Shizuku is already stopped');
+            } else {
+                // Default success if no error indicators
+                showToast('✅ Shizuku stopped');
+            }
+            
             checkStatus();
             loadLogs();
         })
         .catch(err => {
-            showToast('❌ Error: ' + err.message);
+            const errMsg = err.message || 'Unknown error';
+            // Check if error message contains success indicators (fallback)
+            if (errMsg.includes('SUCCESS') || errMsg.includes('✅')) {
+                showToast('✅ Command succeeded');
+            } else {
+                showToast('❌ Error: ' + errMsg);
+            }
             checkStatus();
             loadLogs();
         });
