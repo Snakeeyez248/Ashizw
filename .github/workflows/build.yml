@@ -1,0 +1,105 @@
+name: Build Ashizw Module
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Get current version info
+      id: current_version
+      run: |
+        VERSION=$(grep "^version=" module.prop | cut -d'=' -f2)
+        VERSION_CODE=$(grep "^versionCode=" module.prop | cut -d'=' -f2)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+        echo "Current version: $VERSION (code: $VERSION_CODE)"
+        
+    - name: Auto-increment version for build
+      id: new_version
+      run: |
+        CURRENT_VERSION=$(grep "^version=" module.prop | cut -d'=' -f2)
+        CURRENT_CODE=$(grep "^versionCode=" module.prop | cut -d'=' -f2)
+        
+        # Split version into major.minor
+        MAJOR=$(echo $CURRENT_VERSION | cut -d'.' -f1)
+        MINOR=$(echo $CURRENT_VERSION | cut -d'.' -f2)
+        
+        # Increment minor version
+        NEW_MINOR=$((MINOR + 1))
+        NEW_VERSION="${MAJOR}.${NEW_MINOR}"
+        NEW_CODE=$((CURRENT_CODE + 1))
+        
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "new_version_code=$NEW_CODE" >> $GITHUB_OUTPUT
+        echo "New build version: $NEW_VERSION (code: $NEW_CODE)"
+        
+    - name: Update module.prop with new version
+      run: |
+        sed -i "s/^version=.*/version=${{ steps.new_version.outputs.new_version }}/" module.prop
+        sed -i "s/^versionCode=.*/versionCode=${{ steps.new_version.outputs.new_version_code }}/" module.prop
+        echo "Updated module.prop to version ${{ steps.new_version.outputs.new_version }}"
+        cat module.prop
+        
+    - name: Commit version update (skip for PRs)
+      if: github.event_name != 'pull_request'
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "chore: bump version to ${{ steps.new_version.outputs.new_version }} [skip ci]"
+        file_pattern: module.prop
+        branch: ${{ github.head_ref || github.ref_name }}
+        
+    - name: Create module directory
+      run: |
+        mkdir -p ashizw_module
+        
+    - name: Copy module files
+      run: |
+        cp -r action.sh \
+            customize.sh \
+            post-fs-data.sh \
+            service.sh \
+            uninstall.sh \
+            module.prop \
+            update.json \
+            banner.jpeg \
+            system \
+            webroot \
+            ashizw_module/
+            
+    - name: Add update-binary (stub for Magisk)
+      run: |
+        mkdir -p ashizw_module/META-INF/com/google/android
+        cat > ashizw_module/META-INF/com/google/android/update-binary << 'EOF'
+        #!/system/bin/sh
+        # Stub update-binary for Magisk compatibility
+        exit 0
+        EOF
+        chmod 755 ashizw_module/META-INF/com/google/android/update-binary
+        
+        cat > ashizw_module/META-INF/com/google/android/updater-script << 'EOF'
+        #MAGISK
+        EOF
+        
+    - name: Create ZIP package
+      run: |
+        cd ashizw_module
+        zip -r ../Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha::7 }}.zip .
+        cd ..
+        echo "Created Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha::7 }}.zip"
+        
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha::7 }}
+        path: Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha::7 }}.zip
+        retention-days: 30
