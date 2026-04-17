@@ -22,15 +22,20 @@ Now featuring a **beautiful WebUI dashboard** inside KernelSU Manager for one-ta
   - One-tap Start/Stop Shizuku with instant feedback
   - Live log viewer with auto-refresh, color-coded entries, and scroll controls
   - Configurable boot delay & check interval with live validation
-  - Responsive dark theme optimized
+  - **🎨 Theme Switcher** *(v1.5+)*: Choose between **Dark**, **Light**, or **Auto** (System) themes
+  - Responsive design optimized for all devices
 - 📱 **Interactive CLI:** User-friendly menu-driven management in Termux
 - ⚡ **Quick Commands:** Fast CLI shortcuts for common actions (`ashizw start`, `ashizw status`, etc.)
+- 🔘 **KernelSU Action Button** *(v1.5+)*: 
+  - Clean, minimal interface with volume key controls
+  - `Volume Up` → Start/Stop Shizuku (with confirmation)
+  - `Volume Down` → Directly opens Shizuku app (no picker menu)
 - 🖼️ **Module Banner Support** *(v1.4+)*: Displays artwork in supported managers (✅ KernelSU Next)
 - 🧹 **Clean Uninstall:** Completely removes all configurations and logs upon module removal
 
 ## 📦 Installation
 ### Basic Install
-1. Download the latest `ashizw-v1.4.zip` module file
+1. Download the latest `Ashizw-v1.5.zip` module file from [Releases](https://github.com/Snakeeyez248/Ashizw/releases)
 2. Open your root manager (Magisk, KernelSU, or APatch)
 3. Navigate to the **Modules** section
 4. Tap **Install from Storage** and select the zip file
@@ -45,10 +50,18 @@ Now featuring a **beautiful WebUI dashboard** inside KernelSU Manager for one-ta
    - ⚡ Start/Stop buttons with visual feedback
    - 📝 Logs tab with live auto-refresh
    - ⚙️ Configure intervals without editing files
+   - 🎨 **Theme Switcher**: Toggle between Dark, Light, or Auto themes in the header
 
+#### 🔹 Using KernelSU Action Button *(v1.5+)*
+1. Open **KernelSU Manager** → **Modules** → **Ashizw**
+2. Tap the **Action Button** (⚡ icon)
+3. Wait for the action screen to appear
+4. Press a volume key within 10 seconds:
+   - **Volume Up** → Start/Stop Shizuku (confirms before executing)
+   - **Volume Down** → Opens Shizuku app directly
+5. Screen exits automatically after action completes
 
-## 🛠️ Usage
-
+#### 🔹 Using CLI (Termux)
 Open Termux and type:
 
     su
