@@ -1,19 +1,27 @@
-```yaml
-name: Build and Test
-on: [push, pull_request]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest
-    - name: Run tests
-      run: pytest tests/
-```
+# --- Android Module Specific ---
+# Ignore build artifacts and temporary files
+*.zip
+!module.prop
+build/
+out/
+dist/
+
+# Ignore logs and runtime data (Never commit these!)
+*.log
+/data/adb/
+ashizw.log
+last_log.txt
+
+# Ignore IDE and Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore OS specific files
+.DS_Store
+Thumbs.db
+
+# Ignore local configuration if it contains secrets
+config.local.json
