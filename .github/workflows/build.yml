@@ -93,13 +93,13 @@ jobs:
     - name: Create ZIP package
       run: |
         cd ashizw_module
-        zip -r ../Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha::7 }}.zip .
+        zip -r ../Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha }}.zip .
         cd ..
-        echo "Created Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha::7 }}.zip"
+        echo "Created Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha }}.zip"
         
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha::7 }}
-        path: Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha::7 }}.zip
+        name: Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha }}
+        path: Ashizw-${{ steps.new_version.outputs.new_version }}-${{ github.sha }}.zip
         retention-days: 30
