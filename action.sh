@@ -96,9 +96,9 @@ open_shizuku_app() {
 # ============ MAIN ============
 
 echo ""
-echo "╔═══════════════════════════════════╗"
-echo "║     ✦ Ashizw Action Panel ✦       ║"
-echo "╚═══════════════════════════════════╝"
+echo "================================="
+echo "   Ashizw Quick Action"
+echo "================================="
 echo ""
 
 # Determine current state
@@ -112,22 +112,13 @@ else
     STATE_ICON="⚠️"
 fi
 
-echo "┌───────────────────────────────────────┐"
-echo "│                                       │"
-echo "│   Shizuku Status: $STATE_ICON $CURRENT_STATE                  │"
-echo "│                                       │"
-echo "│   ┌─────────────────────────────────┐ │"
-echo "│   │  [↑] VOLUME UP                  │ │"
-echo "│   │      → $ACTION_NAME Shizuku                │ │"
-echo "│   │                                 │ │"
-echo "│   │  [↓] VOLUME DOWN                │ │"
-echo "│   │      → Open Shizuku App         │ │"
-echo "│   └─────────────────────────────────┘ │"
-echo "│                                       │"
-echo "│   ⏱ Waiting for input (10s timeout)  │"
-echo "└───────────────────────────────────────┘"
+echo "  Status: $STATE_ICON $CURRENT_STATE"
 echo ""
-echo "📍 Log: $LOG_FILE"
+echo "  [Vol ↑]  $ACTION_NAME Shizuku"
+echo "  [Vol ↓]  Open Shizuku App"
+echo ""
+echo "  Waiting (10s)..."
+echo "---------------------------------"
 log "Action menu displayed. State: $CURRENT_STATE"
 
 # Wait for volume key (max 10 seconds)
@@ -158,9 +149,7 @@ while [ $timeout -lt 100 ]; do
 done
 
 if [ $timeout -ge 100 ]; then
-    echo ""
-    echo "⚠️  Timeout: No input received. Exiting."
-    log "Action timeout: No input received"
+    echo "⚠️  Timeout: No input."
 fi
 
 exit 0
