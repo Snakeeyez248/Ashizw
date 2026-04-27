@@ -4,19 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       commit_sha:
-        description: 'Commit SHA to release (leave empty for latest main commit)'
+        description: 'Commit SHA to release (leave empty for latest main)'
         required: false
         default: ''
       version_tag:
-        description: 'Version tag for release (e.g., v1.5 - must match module.prop version)'
+        description: 'Version tag (e.g. v1.5 — must match module.prop)'
         required: true
         default: 'v1.5'
       release_name:
-        description: 'Release name (e.g., Ashizw v1.5 Stable)'
+        description: 'Release name (e.g. Ashizw v1.5 Stable)'
         required: true
         default: 'Ashizw v1.5 Stable'
       is_stable:
-        description: 'Mark as stable release? (uncheck for pre-release/beta)'
+        description: 'Mark as stable release?'
         required: true
         type: boolean
         default: true
@@ -25,10 +25,9 @@ on:
         required: false
         default: |
           ## What's New
-          
           - Bug fixes and improvements
           - See commit history for details
-          
+
           ### Installation
           1. Download the ZIP file
           2. Flash via Magisk/KernelSU
@@ -37,14 +36,14 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v4
       with:
         ref: ${{ github.event.inputs.commit_sha != '' && github.event.inputs.commit_sha || 'main' }}
         persist-credentials: false
-        
+
     - name: Get version info from module.prop
       id: version
       run: |
@@ -53,21 +52,17 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
         echo "Module version: $VERSION (code: $VERSION_CODE)"
-        
-        # Validate that version_tag matches module.prop
+
         EXPECTED_TAG="v${VERSION}"
         INPUT_TAG="${{ github.event.inputs.version_tag }}"
-        
         if [ "$INPUT_TAG" != "$EXPECTED_TAG" ]; then
-          echo "::error::Version mismatch! Input tag ($INPUT_TAG) doesn't match module.prop version ($EXPECTED_TAG)"
-          echo "::error::Please update the version_tag input to match module.prop or update module.prop first"
+          echo "::error::Version mismatch! Input tag ($INPUT_TAG) doesn't match module.prop ($EXPECTED_TAG)"
           exit 1
         fi
-        
+
     - name: Create module directory
-      run: |
-        mkdir -p ashizw_module
-        
+      run: mkdir -p ashizw_module
+
     - name: Copy module files
       run: |
         cp -r action.sh \
@@ -81,7 +76,7 @@ jobs:
             system \
             webroot \
             ashizw_module/
-            
+
     - name: Add update-binary (stub for Magisk)
       run: |
         mkdir -p ashizw_module/META-INF/com/google/android
@@ -91,18 +86,18 @@ jobs:
         exit 0
         EOF
         chmod 755 ashizw_module/META-INF/com/google/android/update-binary
-        
+
         cat > ashizw_module/META-INF/com/google/android/updater-script << 'EOF'
         #MAGISK
         EOF
-        
+
     - name: Create ZIP package
       run: |
         cd ashizw_module
         zip -r ../Ashizw-${{ steps.version.outputs.version }}.zip .
         cd ..
         echo "Created Ashizw-${{ steps.version.outputs.version }}.zip"
-        
+
     - name: Create Official Release
       uses: softprops/action-gh-release@v1
       with:
@@ -115,17 +110,16 @@ jobs:
         generate_release_notes: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Update latest release asset
-      if: github.event.inputs.is_stable == true
+
+    - name: Update latest-stable tag
+      if: github.event.inputs.is_stable == 'true'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: latest-stable
         name: Latest Stable Release
         body: |
           This is the latest stable release of Ashizw.
-          
-          For installation instructions, see the specific version release.
+          See the specific version release for installation instructions.
         files: Ashizw-${{ steps.version.outputs.version }}.zip
         prerelease: false
       env:

@@ -13,13 +13,13 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v4
       with:
         persist-credentials: false
-      
+
     - name: Get current version info
       id: current_version
       run: |
@@ -28,19 +28,10 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
         echo "Current version: $VERSION (code: $VERSION_CODE)"
-        
-    - name: Commit version update (skip for PRs)
-      if: false  # Disabled: Manual version management recommended
-      uses: stefanzweifel/git-auto-commit-action@v6
-      with:
-        commit_message: "chore: bump version [skip ci]"
-        file_pattern: module.prop
-        branch: ${{ github.head_ref || github.ref_name }}
-        
+
     - name: Create module directory
-      run: |
-        mkdir -p ashizw_module
-        
+      run: mkdir -p ashizw_module
+
     - name: Copy module files
       run: |
         cp -r action.sh \
@@ -54,7 +45,7 @@ jobs:
             system \
             webroot \
             ashizw_module/
-            
+
     - name: Add update-binary (stub for Magisk)
       run: |
         mkdir -p ashizw_module/META-INF/com/google/android
@@ -64,21 +55,15 @@ jobs:
         exit 0
         EOF
         chmod 755 ashizw_module/META-INF/com/google/android/update-binary
-        
+
         cat > ashizw_module/META-INF/com/google/android/updater-script << 'EOF'
         #MAGISK
         EOF
-        
-    - name: Get version description
-      id: version_desc
-      run: |
-        VERSION=$(grep "^version=" module.prop | cut -d'=' -f2)
-        echo "description=Ashizw v${VERSION} - Now With WebUI Support" >> $GITHUB_OUTPUT
-        
+
     - name: Upload build artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v4
       with:
-        name: Ashizw-v${{ github.run_number }}
+        name: Ashizw-v${{ steps.current_version.outputs.version }}-build${{ github.run_number }}
         path: ashizw_module/
         retention-days: 30
         compression-level: 6
