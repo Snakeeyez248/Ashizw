@@ -1,12 +1,14 @@
 #!/system/bin/sh
 # Ashizw - Action Script for KernelSU Button
-# v1.3 - Volume key confirmation + Shizuku app launcher
+# Volume key controls with non-blocking output
 
 CONFIG_DIR="/data/adb/.config/ashizw"
 LOG_FILE="$CONFIG_DIR/ashizw.log"
-MODULE_ID="ashizw"
 
-# Update KernelSU Dynamic Status
+log() {
+    echo "[*] $(date '+%Y-%m-%d %H:%M:%S'): [ACTION] $1" >> "$LOG_FILE"
+}
+
 update_ksu_status() {
     status_msg="$1"
     if command -v ksud >/dev/null 2>&1; then
@@ -14,60 +16,63 @@ update_ksu_status() {
     fi
 }
 
-log() {
-    echo "[*] $(date '+%Y-%m-%d %H:%M:%S'): [ACTION] $1" >> "$LOG_FILE"
-}
-
-# Print message to stdout (for KSU action screen) + log
+# Print to action screen only — no sleep, no blocking
 show_message() {
-    msg="$1"
-    emoji="$2"
-    # Print to stdout (visible in KSU action screen)
-    echo "$emoji $msg"
-    # Log to file
-    log "$msg"
-    # Keep on screen for 3 seconds so user can read
-    sleep 3
+    echo "$2 $1"
+    log "$1"
 }
 
 start_shizuku() {
-    echo "🔄 Ashizw: Starting Shizuku..."
+    show_message "Starting Shizuku..." "🔄"
     log "🚀 Starting Shizuku via Action..."
     update_ksu_status "🔄 Ashizw: Starting Shizuku..."
-    
-    LIB_PATH=$(find /data/app/ -type f -name "libshizuku.so" 2>/dev/null | head -n 1)
+
+    # Use cached path first (fast), fall back to find with timeout (slow)
+    LIB_CACHE="/data/adb/.config/ashizw/lib_cache"
+    LIB_PATH=""
+
+    if [ -f "$LIB_CACHE" ]; then
+        cached=$(cat "$LIB_CACHE")
+        [ -f "$cached" ] && LIB_PATH="$cached"
+    fi
+
+    if [ -z "$LIB_PATH" ]; then
+        show_message "Locating libshizuku.so..." "🔍"
+        LIB_PATH=$(timeout 5 find /data/app/ -type f -name "libshizuku.so" 2>/dev/null | head -n 1)
+        [ -n "$LIB_PATH" ] && echo "$LIB_PATH" > "$LIB_CACHE"
+    fi
 
     if [ -z "$LIB_PATH" ]; then
         show_message "libshizuku.so not found! Check Shizuku setup." "❌"
         update_ksu_status "❌ Ashizw: libshizuku.so Not Found"
         return 1
+    fi
+
+    show_message "Found: $LIB_PATH" "📍"
+    chmod 755 "$LIB_PATH" 2>/dev/null
+    "$LIB_PATH" &
+    RET=$?
+
+    if [ "$RET" -eq 0 ]; then
+        show_message "Shizuku started successfully!" "✅"
+        update_ksu_status "✅ Ashizw: Shizuku Restored"
+        sleep 2
+        update_ksu_status "💓 Shizuku Running | Watchdog Active ✅"
     else
-        echo "📍 Found: $LIB_PATH"
-        chmod 755 "$LIB_PATH" 2>/dev/null
-        "$LIB_PATH" &
-        RET=$?
-        
-        if [ "$RET" -eq 0 ]; then
-            show_message "Shizuku restored successfully!" "✅"
-            update_ksu_status "✅ Ashizw: Shizuku Restored"
-            sleep 2
-            update_ksu_status "💓 Shizuku Running | Watchdog Active ✅"
-        else
-            show_message "Failed to start (Exit code: $RET)" "⚠️"
-            update_ksu_status "⚠️ Ashizw: Start Failed (Code: $RET)"
-        fi
+        show_message "Failed to start (Exit: $RET)" "⚠️"
+        update_ksu_status "⚠️ Ashizw: Start Failed (Code: $RET)"
     fi
 }
 
 stop_shizuku() {
-    echo "🛑 Stopping Shizuku..."
+    show_message "Stopping Shizuku..." "🛑"
     log "🛑 Stopping Shizuku via Action..."
     update_ksu_status "🛑 Ashizw: Stopping Shizuku..."
-    
+
     pkill -f shizuku_server 2>/dev/null
     pkill -f shizuku 2>/dev/null
     sleep 2
-    
+
     if ! pidof shizuku_server >/dev/null 2>&1; then
         show_message "Shizuku stopped successfully!" "✅"
         update_ksu_status "⚠️ Shizuku Stopped | Tap Action to Start"
@@ -78,30 +83,59 @@ stop_shizuku() {
 }
 
 open_shizuku_app() {
-    echo "📱 Opening Shizuku app..."
+    show_message "Opening Shizuku app..." "📱"
     log "📱 Opening Shizuku app..."
-    
-    # Direct command that works without 'Open with' menu
     su -c "am start -n moe.shizuku.privileged.api/moe.shizuku.manager.MainActivity" >/dev/null 2>&1
-    
     if [ $? -eq 0 ]; then
         show_message "Shizuku app opened" "✅"
-        return 0
     else
         show_message "Failed to open Shizuku app" "⚠️"
-        return 1
     fi
 }
 
-# ============ MAIN ============
+# ============================================================
+# Volume key detection
+# ---------------------------------------------------------------
+# getevent is the standard Android approach used by most module
+# devs and is present in all Android versions (it reads directly
+# from /dev/input/). The alternative — reading /dev/input/event*
+# manually with dd — is much more complex and not more reliable.
+#
+# What we improved vs the original:
+#   • Use `-q` (quiet) + `-c 1` (one event) in a fast loop
+#   • No `sleep 3` blocking between messages
+#   • Match both KEY_VOLUMEUP/DOWN and raw EV_KEY codes (0x73/0x72)
+#     so it works even on kernels that report raw codes
+# ---------------------------------------------------------------
+wait_for_volume_key() {
+    timeout=0
+    while [ $timeout -lt 100 ]; do
+        event=$(getevent -qlc 1 2>/dev/null)
 
+        # Match by name OR raw hex code for broader device compat
+        if echo "$event" | grep -qE "KEY_VOLUMEUP|0{0,4}73 00000001"; then
+            echo "vol_up"
+            return
+        elif echo "$event" | grep -qE "KEY_VOLUMEDOWN|0{0,4}72 00000001"; then
+            echo "vol_down"
+            return
+        fi
+
+        timeout=$((timeout + 1))
+        sleep 0.1
+    done
+    echo "timeout"
+}
+
+# ============================================================
+# MAIN
+# ============================================================
 echo ""
 echo "================================="
 echo "   Ashizw Quick Action"
 echo "================================="
 echo ""
 
-# Determine current state
 if pidof shizuku_server >/dev/null 2>&1; then
     CURRENT_STATE="running"
     ACTION_NAME="Stop"
@@ -112,44 +146,36 @@ else
     STATE_ICON="⚠️"
 fi
 
-echo "  Status: $STATE_ICON $CURRENT_STATE"
+echo "  Status : $STATE_ICON Shizuku is $CURRENT_STATE"
 echo ""
 echo "  [Vol ↑]  $ACTION_NAME Shizuku"
 echo "  [Vol ↓]  Open Shizuku App"
 echo ""
-echo "  Waiting (10s)..."
+echo "  Waiting for input (10s)..."
 echo "---------------------------------"
 log "Action menu displayed. State: $CURRENT_STATE"
 
-# Wait for volume key (max 10 seconds)
-timeout=0
-while [ $timeout -lt 100 ]; do
-    event=$(getevent -qlc 1 2>/dev/null)
-    
-    if echo "$event" | grep -q "KEY_VOLUMEUP"; then
+KEY=$(wait_for_volume_key)
+
+case "$KEY" in
+    vol_up)
         echo "→ VOLUME UP: $ACTION_NAME Shizuku"
         log "Volume Up pressed: $ACTION_NAME action"
-        
         if [ "$CURRENT_STATE" = "running" ]; then
             stop_shizuku
         else
             start_shizuku
         fi
-        break
-        
-    elif echo "$event" | grep -q "KEY_VOLUMEDOWN"; then
+        ;;
+    vol_down)
         echo "→ VOLUME DOWN: Open Shizuku App"
         log "Volume Down pressed: Open app"
         open_shizuku_app
-        break
-    fi
-    
-    timeout=$((timeout + 1))
-    sleep 0.1
-done
-
-if [ $timeout -ge 100 ]; then
-    echo "⚠️  Timeout: No input."
-fi
+        ;;
+    timeout)
+        echo "⚠️  No input received. Exiting."
+        log "Action timeout: no input"
+        ;;
+esac
 
 exit 0

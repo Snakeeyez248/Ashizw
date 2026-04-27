@@ -4,12 +4,14 @@
 CONFIG_DIR="/data/adb/.config/ashizw"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 LOG_FILE="$CONFIG_DIR/ashizw.log"
+LIB_CACHE="$CONFIG_DIR/lib_cache"
 MODULE_ID="ashizw"
 
-# Ensure config directory exists
+# Log max lines before rotation
+LOG_MAX_LINES=500
+
 mkdir -p "$CONFIG_DIR" 2>/dev/null
 
-# Create default config if missing
 init_config() {
     if [ ! -f "$CONFIG_FILE" ]; then
         cat > "$CONFIG_FILE" << 'EOF'
@@ -22,13 +24,9 @@ EOF
 }
 init_config
 
-# Toast Function (Android-specific)
-show_toast() {
-    command -v toast >/dev/null 2>&1 && toast "$1"
-    command -v termux-notification >/dev/null 2>&1 && termux-notification -t "$1"
-}
-
-# Update KernelSU Dynamic Status (NEW - ADDED BACK)
+# -------------------------------------------------------------------
+# Update KernelSU dynamic status
+# -------------------------------------------------------------------
 update_ksu_status() {
     status_msg="$1"
     if command -v ksud >/dev/null 2>&1; then
@@ -38,21 +36,29 @@ update_ksu_status() {
 
 log() {
     echo "[*] $(date '+%Y-%m-%d %H:%M:%S'): [CLI] $1" >> "$LOG_FILE"
+    rotate_log
 }
 
-# Get Current Config Value - Clean extraction
+rotate_log() {
+    line_count=$(wc -l < "$LOG_FILE" 2>/dev/null || echo 0)
+    if [ "$line_count" -gt "$LOG_MAX_LINES" ]; then
+        tmp="${LOG_FILE}.tmp"
+        tail -n "$LOG_MAX_LINES" "$LOG_FILE" > "$tmp" && mv "$tmp" "$LOG_FILE"
+    fi
+}
+
+# -------------------------------------------------------------------
+# Config helpers
+# -------------------------------------------------------------------
 get_current_val() {
     local key="$1"
     local default="$2"
-    
+
     if [ -f "$CONFIG_FILE" ]; then
-        # Use sed -n with 'p' flag: only print if pattern matches
-        # This prevents outputting the entire line when extraction fails
-        local val=$(grep "\"$key\"" "$CONFIG_FILE" 2>/dev/null | \
-                   sed -n "s/.*\"$key\"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p" | \
-                   head -n 1)
-        
-        # Validate: must be non-empty AND a valid number
+        local val
+        val=$(grep "\"$key\"" "$CONFIG_FILE" 2>/dev/null | \
+              sed -n "s/.*\"$key\"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p" | \
+              head -n 1)
         if [ -n "$val" ] && [ "$val" -ge 0 ] 2>/dev/null; then
             echo "$val"
         else
@@ -62,109 +68,126 @@ get_current_val() {
         echo "$default"
     fi
 }
-# Update Config Value - Safe atomic write
+
 update_config() {
     local key="$1"
     local value="$2"
-    
+
     if [ ! -f "$CONFIG_FILE" ]; then
         echo "⚠ Config file not found!"
-        show_toast "⚠ Ashizw: Config Error"
         return 1
     fi
-    
+
     if ! echo "$value" | grep -qE '^[0-9]+$'; then
         echo "✗ Invalid value: $value (must be a number)"
         return 1
     fi
-    
+
     cp "$CONFIG_FILE" "${CONFIG_FILE}.bak" 2>/dev/null
-    
-    if sed -E "s/(\"$key\"[[:space:]]*:[[:space:]]*)[0-9]+/\1${value}/" "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" 2>/dev/null; then
+
+    if sed -E "s/(\"$key\"[[:space:]]*:[[:space:]]*)[0-9]+/\1${value}/" \
+           "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" 2>/dev/null; then
         mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
         echo "✓ Updated $key to $value seconds."
-        show_toast "✓ Ashizw: Config Updated"
         log "Config updated: $key = $value"
-        
-        # 🔥 CREATE RELOAD FLAG - Service will detect this!
-        touch "/data/adb/.config/ashizw/reload.flag" 2>/dev/null
-        log "🔄 Reload flag created - service will apply changes immediately"
-        
+        touch "$CONFIG_DIR/reload.flag" 2>/dev/null
+        log "🔄 Reload flag set — service will apply changes within ~10s"
         return 0
     else
         [ -f "${CONFIG_FILE}.bak" ] && mv "${CONFIG_FILE}.bak" "$CONFIG_FILE"
         rm -f "${CONFIG_FILE}.tmp" 2>/dev/null
         echo "✗ Failed to update config!"
-        show_toast "✗ Ashizw: Update Failed"
         log "Config update failed for $key"
         return 1
     fi
 }
 
+# -------------------------------------------------------------------
+# find_lib: cached libshizuku.so lookup (fast path = cache hit)
+# -------------------------------------------------------------------
+find_lib() {
+    if [ -f "$LIB_CACHE" ]; then
+        cached=$(cat "$LIB_CACHE")
+        if [ -n "$cached" ] && [ -f "$cached" ]; then
+            echo "$cached"
+            return 0
+        else
+            rm -f "$LIB_CACHE"
+        fi
+    fi
+
+    result=$(timeout 5 find /data/app/ -type f -name "libshizuku.so" 2>/dev/null | head -n 1)
+    if [ -n "$result" ]; then
+        echo "$result" > "$LIB_CACHE"
+        echo "$result"
+        return 0
+    fi
+
+    return 1
+}
+
+# -------------------------------------------------------------------
+# Shizuku start / stop
+# -------------------------------------------------------------------
 start_shizuku() {
     if pidof shizuku_server >/dev/null 2>&1; then
         echo "💓 Shizuku is already running."
-        show_toast "💓 Ashizw: Already Running"        update_ksu_status "💓 Shizuku Running | Watchdog Active ✅"
+        update_ksu_status "💓 Shizuku Running | Watchdog Active ✅"
         return 0
     fi
-    
+
     echo "🚀 Starting Shizuku..."
-    show_toast "🚀 Ashizw: Starting..."
     update_ksu_status "🔄 Ashizw: Starting Shizuku..."
-    
-    LIB_PATH=$(find /data/app/ -type f -name "libshizuku.so" 2>/dev/null | head -n 1)
+
+    LIB_PATH=$(find_lib)
 
     if [ -z "$LIB_PATH" ]; then
-        echo "❌ ERROR: libshizuku.so not found!"
-        show_toast "❌ Ashizw: .so not found"
+        echo "❌ ERROR: libshizuku.so not found! (Shizuku installed?)"
         log "Binary not found"
         update_ksu_status "❌ Ashizw: libshizuku.so Not Found"
         return 1
+    fi
+
+    echo "📍 Located: $LIB_PATH"
+    chmod 755 "$LIB_PATH" 2>/dev/null
+    "$LIB_PATH"
+    RET=$?
+
+    if [ "$RET" -eq 0 ]; then
+        echo "💓 SUCCESS: Shizuku started."
+        log "Started via CLI"
+        update_ksu_status "✅ Ashizw: Shizuku Restored Successfully"
+        sleep 3
+        update_ksu_status "💓 Shizuku Running | Watchdog Active ✅"
     else
-        echo "Located: $LIB_PATH"
-        chmod 755 "$LIB_PATH" 2>/dev/null
-        "$LIB_PATH"
-        RET=$?
-        if [ "$RET" -eq 0 ]; then
-            echo "💓 SUCCESS: Shizuku restored by Ashizw."
-            show_toast "💓 Ashizw: Started"
-            log "Started via CLI"
-            update_ksu_status "✅ Ashizw: Shizuku Restored Successfully"
-            sleep 3
-            update_ksu_status "💓 Shizuku Running | Watchdog Active ✅"
-        else
-            echo "❌ FAILED: Exit code $RET"
-            show_toast "❌ Ashizw: Start Failed"
-            log "Failed to start via CLI"
-            update_ksu_status "⚠️ Ashizw: Start Failed (Code: $RET)"
-        fi
+        echo "❌ FAILED: Exit code $RET"
+        log "Failed to start via CLI"
+        update_ksu_status "⚠️ Ashizw: Start Failed (Code: $RET)"
     fi
 }
 
 stop_shizuku() {
     if ! pidof shizuku_server >/dev/null 2>&1; then
-        echo "⚠️ Shizuku is already stopped."
-        show_toast "⚠️ Ashizw: Already Stopped"
+        echo "⚠️  Shizuku is already stopped."
         update_ksu_status "⚠️ Shizuku Stopped | Tap Action to Start"
         return 0
     fi
-    
+
     echo "🛑 Stopping Shizuku..."
-    show_toast "🛑 Ashizw: Stopping..."
     update_ksu_status "🛑 Ashizw: Stopping Shizuku..."
-    
-    pkill -f shizuku_server 2>/dev/null    pkill -f shizuku 2>/dev/null
+
+    # BUG FIX: these were on one line before — now correctly separated
+    pkill -f shizuku_server 2>/dev/null
+    pkill -f shizuku 2>/dev/null
     sleep 2
-    
+
     if ! pidof shizuku_server >/dev/null 2>&1; then
-        echo "✅ Shizuku Stopped Successfully."
-        show_toast "✅ Ashizw: Stopped"
+        echo "✅ Shizuku stopped successfully."
         log "Stopped via CLI"
         update_ksu_status "⚠️ Shizuku Stopped | Tap Action to Start"
         return 0
     else
         echo "❌ Failed to stop Shizuku."
-        show_toast "❌ Ashizw: Stop Failed"
         log "Failed to stop via CLI"
         update_ksu_status "⚠️ Ashizw: Stop Failed"
         return 1
@@ -185,7 +208,7 @@ show_help_text() {
    ✦ Ashizw Commands ✦
 ==================================
 ashizw start            : Start Shizuku
-ashizw stop             : Stop Shizuku  
+ashizw stop             : Stop Shizuku
 ashizw status           : Check Status
 ashizw set_delay <s>    : Set Boot Delay (seconds)
 ashizw set_interval <s> : Set Check Interval (seconds)
@@ -202,7 +225,7 @@ show_menu() {
         echo "   ✦ Ashizw Manager ✦"
         echo "=================================="
         print_status
-        echo "=================================="        
+        echo "=================================="
         echo "1. Start Shizuku"
         echo "2. Stop Shizuku"
         echo "3. Settings (Delay/Interval)"
@@ -211,11 +234,11 @@ show_menu() {
         echo "=================================="
         echo -n "Select an option [1-5]: "
         read CHOICE
-        
+
         case $CHOICE in
-            1) start_shizuku;;
-            2) stop_shizuku;;
-            3) 
+            1) start_shizuku ;;
+            2) stop_shizuku ;;
+            3)
                 echo ""
                 echo "1. Set Boot Delay"
                 echo "2. Set Check Interval"
@@ -236,22 +259,25 @@ show_menu() {
                     echo "Invalid selection"
                 fi
                 ;;
-            4) show_help_text;;
-            5) echo "✦ Goodbye!"; exit 0;;
-            *) echo "Invalid option";;
+            4) show_help_text ;;
+            5) echo "✦ Goodbye!"; exit 0 ;;
+            *) echo "Invalid option" ;;
         esac
+
         echo ""
         echo "Press Enter to continue..."
         read -r
     done
 }
 
-# ============ MAIN LOGIC ============
-
+# ============================================================
+# MAIN LOGIC
+# ============================================================
 if [ -z "$1" ]; then
     show_menu
     exit 0
 fi
+
 case "$1" in
     s|status)
         print_status

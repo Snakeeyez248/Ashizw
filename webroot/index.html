@@ -15,20 +15,20 @@
                     <span class="logo-icon">🛡️</span>
                     <div class="logo-text">
                         <h1>Ashizw</h1>
-                        <p class="subtitle">Shizuku Watchdog & Manager</p>
+                        <p class="subtitle">Shizuku Watchdog &amp; Manager</p>
                     </div>
                 </div>
                 <div class="header-actions">
                     <div class="theme-selector">
                         <select id="themeSelect" title="Select Theme">
-                            <option value="auto">🌐 Auto (System)</option>
+                            <option value="auto">🌐 Auto</option>
                             <option value="dark">🌙 Dark</option>
                             <option value="light">☀️ Light</option>
                         </select>
                     </div>
                     <div class="status-badge" id="headerStatus">
                         <span class="status-dot" id="statusDot"></span>
-                        <span class="status-text" id="statusText">Checking...</span>
+                        <span id="statusText">Checking...</span>
                     </div>
                 </div>
             </div>
@@ -54,13 +54,13 @@
                 </div>
                 <div class="card-body">
                     <button class="action-btn btn-success" id="startBtn">
-                        <span class="btn-icon">🚀</span> Start Shizuku
+                        🚀 Start Shizuku
                     </button>
                     <button class="action-btn btn-danger" id="stopBtn">
-                        <span class="btn-icon">🛑</span> Stop Shizuku
+                        🛑 Stop Shizuku
                     </button>
                     <button class="action-btn btn-secondary" id="refreshStatusBtn">
-                        <span class="btn-icon">🔄</span> Refresh Status
+                        🔄 Refresh Status
                     </button>
                 </div>
             </div>
@@ -74,22 +74,22 @@
                     <div class="form-group">
                         <label for="bootDelay">Boot Delay (seconds)</label>
                         <input type="number" id="bootDelay" min="1" max="300" value="45">
-                        <small class="form-hint">Time to wait after boot before starting</small>
+                        <small class="form-hint">Time to wait after boot before starting Shizuku</small>
                     </div>
                     <div class="form-group">
                         <label for="checkInterval">Check Interval (seconds)</label>
                         <input type="number" id="checkInterval" min="10" max="86400" value="1800">
-                        <small class="form-hint">How often to check Shizuku status</small>
+                        <small class="form-hint">How often to check if Shizuku is running</small>
                     </div>
                     <button class="btn-primary" id="saveConfigBtn">
-                        <span class="btn-icon">💾</span> Save Settings
+                        💾 Save Settings
                     </button>
                 </div>
             </div>
 
             <footer class="app-footer">
                 <p>Made with ❤️ by Ghulam Qadar</p>
-                <p class="version" id="versionDisplay">Version <span id="versionValue">loading...</span></p>
+                <p class="version">Version <span id="versionValue">loading...</span></p>
             </footer>
         </div>
 
@@ -98,31 +98,30 @@
             <div class="logs-container">
                 <div class="logs-header">
                     <div class="logs-title">
-                        <span class="logs-icon">📝</span>
+                        <span>📝</span>
                         <h2>System Logs</h2>
                     </div>
                     <div class="logs-controls">
-                        <button class="btn-small" id="refreshLogsBtn">
-                            <span>🔄</span> Refresh
-                        </button>
-                        <button class="btn-small" id="clearLogsBtn">
-                            <span>🗑️</span> Clear
-                        </button>
+                        <button class="btn-small" id="refreshLogsBtn">🔄 Refresh</button>
+                        <button class="btn-small" id="clearLogsBtn">🗑️ Clear</button>
                     </div>
                 </div>
                 <div class="logs-status">
                     <div class="logs-status-left">
-                        <span class="live-indicator">🔴 LIVE</span>
+                        <span class="live-indicator">
+                            <span class="live-dot"></span> LIVE
+                        </span>
                         <span class="logs-count" id="logsCount">0 entries</span>
+                        <span class="auto-refresh-badge">↻ 15s</span>
                     </div>
                 </div>
                 <!-- Floating scroll arrows -->
                 <div class="scroll-arrows">
-                    <button id="scrollTopBtn" title="Scroll to top">⬆️</button>
-                    <button id="scrollBottomBtn" title="Scroll to bottom">⬇️</button>
+                    <button id="scrollTopBtn" title="Scroll to top">↑</button>
+                    <button id="scrollBottomBtn" title="Scroll to bottom">↓</button>
                 </div>
                 <div id="logsContainer" class="logs-content">
-                    <div class="log-entry loading">Loading logs...</div>
+                    <div class="log-entry">Loading logs...</div>
                 </div>
             </div>
         </div>

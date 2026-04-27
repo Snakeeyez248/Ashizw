@@ -75,7 +75,8 @@ body {
     min-height: 100vh;
     line-height: 1.5;
     padding: 16px;
-    transition: background 0.3s ease, color 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .app-container {
@@ -124,7 +125,7 @@ body {
     font-weight: 500;
     cursor: pointer;
     backdrop-filter: blur(4px);
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
     outline: none;
 }
 
@@ -192,7 +193,7 @@ body {
     height: 10px;
     border-radius: 50%;
     background: #94a3b8;
-    animation: pulse 2s ease-in-out infinite;
+    animation: shadow-pulse 2s ease-in-out infinite;
 }
 
 .status-dot.running {
@@ -231,7 +232,7 @@ body {
     font-size: 1em;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .tab-btn.active {
@@ -299,7 +300,7 @@ body {
     font-size: 1em;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .action-btn:hover {
@@ -343,7 +344,7 @@ body {
     font-size: 1em;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .btn-primary:active {
@@ -444,7 +445,7 @@ body {
     font-size: 0.9em;
     cursor: pointer;
     border: 1px solid var(--border);
-    transition: background 0.2s;
+    transition: background-color 0.3s ease;
 }
 
 .btn-small:hover {
@@ -520,7 +521,7 @@ body {
     gap: 5px;
     color: var(--danger-light);
     font-weight: 600;
-    animation: pulse 2s ease-in-out infinite;
+    animation: shadow-pulse 2s ease-in-out infinite;
 }
 
 .logs-count {
@@ -579,6 +580,11 @@ body {
 .loading {
     animation: pulse 1.5s ease-in-out infinite;
     opacity: 0.7;
+}
+
+@keyframes shadow-pulse {
+    0%, 100% { box-shadow: 0 0 12px var(--success-light); }
+    50% { box-shadow: 0 0 6px var(--success-light); }
 }
 
 @keyframes pulse {

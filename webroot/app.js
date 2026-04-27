@@ -1,8 +1,18 @@
 // Ashizw WebUI - Final version with smart success detection and theme support
 
-// Theme management
-const THEME_STORAGE_KEY = 'ashizw_theme';
+// Theme management using cookies (more resilient than localStorage)
+const THEME_COOKIE_NAME = 'ashizw_theme';
 const THEME_ATTR = 'data-theme';
+
+function setCookie(name, value, days) {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Strict';
+}
+
+function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+}
 
 function getSystemTheme() {
     return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
@@ -18,7 +28,7 @@ function applyTheme(theme) {
 }
 
 function initTheme() {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'auto';
+    const savedTheme = getCookie(THEME_COOKIE_NAME) || 'auto';
     const themeSelect = document.getElementById('themeSelect');
     if (themeSelect) {
         themeSelect.value = savedTheme;
@@ -32,13 +42,13 @@ function setupThemeListener() {
     
     themeSelect.addEventListener('change', (e) => {
         const selectedTheme = e.target.value;
-        localStorage.setItem(THEME_STORAGE_KEY, selectedTheme);
+        setCookie(THEME_COOKIE_NAME, selectedTheme, 365); // 1 year expiry
         applyTheme(selectedTheme);
     });
     
     // Listen for system theme changes when in auto mode
     window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
-        const currentTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'auto';
+        const currentTheme = getCookie(THEME_COOKIE_NAME) || 'auto';
         if (currentTheme === 'auto') {
             applyTheme('auto');
         }
@@ -378,3 +388,57 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(checkStatus, 30000);
     showToast('Ashizw WebUI loaded');
 });
+// Auto-refresh logs every 15 seconds when tab is visible
+let logsAutoRefreshInterval = null;
+
+function startLogsAutoRefresh() {
+    if (logsAutoRefreshInterval) clearInterval(logsAutoRefreshInterval);
+    logsAutoRefreshInterval = setInterval(() => {
+        const logsTab = document.getElementById('logsTab');
+        if (logsTab && logsTab.classList.contains('active')) {
+            // Only auto-scroll if user was already at bottom
+            const container = document.getElementById('logsContainer');
+            const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+            loadLogs(wasAtBottom);
+        }
+    }, 15000);
+}
+
+// Pause auto-refresh when page is hidden (visibilitychange)
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        if (logsAutoRefreshInterval) {
+            clearInterval(logsAutoRefreshInterval);
+            logsAutoRefreshInterval = null;
+        }
+    } else {
+        startLogsAutoRefresh();
+    }
+});
+
+// Start auto-refresh after DOM is ready
+setTimeout(startLogsAutoRefresh, 2000);
+
+// API retry with exponential backoff - poll for ksu.exec up to 6 times (3 seconds total)
+async function waitForApi(maxRetries = 6, delayMs = 500) {
+    for (let i = 0; i < maxRetries; i++) {
+        if (typeof ksu !== 'undefined' && typeof ksu.exec === 'function') {
+            return true;
+        }
+        console.log('[Ashizw] Waiting for KernelSU API... attempt', i + 1);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+    return false;
+}
+
+// Re-init with API wait on DOMContentLoaded
+(function() {
+    const originalListener = document.addEventListener;
+    document.addEventListener('DOMContentLoaded', async () => {
+        const apiAvailable = await waitForApi();
+        if (!apiAvailable) {
+            console.warn('[Ashizw] KernelSU API not available after retries');
+            document.getElementById('apiWarning').classList.add('show');
+        }
+    }, true);
+})();
